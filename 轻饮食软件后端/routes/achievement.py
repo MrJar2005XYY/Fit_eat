@@ -232,6 +232,37 @@ def apply_plan():
     if not user:
         return jsonify({'success': False, 'message': '未登录'}), 401
 
+    data = request.get_json()
+    if not data:
+        data = {}
+
+    meals = data.get('meals', {})
+    created_records = []
+
+    # 为每餐创建饮食记录
+    for meal_type, foods in meals.items():
+        for food_item in foods:
+            food_id = food_item.get('id')
+            if food_id:
+                food = Food.query.get(food_id)
+                if food:
+                    from models.diet import DietRecord
+                    record = DietRecord(
+                        user_id=user.id,
+                        food_id=food.id,
+                        food_name=food.name,
+                        meal_type=meal_type,
+                        calories=food.calories,
+                        protein=food.protein,
+                        carbs=food.carbs,
+                        fat=food.fat,
+                        fiber=food.fiber,
+                        image=food.image,
+                        amount=1.0
+                    )
+                    db.session.add(record)
+                    created_records.append(record)
+
     user.plan_days = user.plan_days + 1
     db.session.commit()
 
@@ -240,5 +271,6 @@ def apply_plan():
 
     return jsonify({
         'success': True,
+        'recordsCreated': len(created_records),
         'unlockedAchievements': [a.name for a in unlocked]
     })
