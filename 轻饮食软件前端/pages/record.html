@@ -395,10 +395,33 @@
       `).join('');
     }
 
-    function selectDay(index) {
+    async function selectDay(index) {
       pageData.selectedDay = index;
       renderDatePicker();
-      Utils.showToast('切换日期成功');
+
+      // 计算选中的日期
+      const today = new Date();
+      const selectedDate = new Date(today);
+      selectedDate.setDate(today.getDate() + (index - 3));
+      const dateStr = selectedDate.toISOString().split('T')[0];
+
+      // 重新加载该日期的数据
+      try {
+        const [radarData, macros, records] = await Promise.all([
+          API.diet.getNutritionRadar(),
+          API.diet.getMacros(),
+          API.diet.getRecords(dateStr)
+        ]);
+
+        renderRadarChart(radarData);
+        renderDesktopMacros(macros);
+        renderMacros(macros);
+
+        Utils.showToast(`已加载 ${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日 数据`);
+      } catch (error) {
+        console.error('加载日期数据失败:', error);
+        Utils.showToast('加载数据失败');
+      }
     }
 
     function renderWeeklyChart(data) {
