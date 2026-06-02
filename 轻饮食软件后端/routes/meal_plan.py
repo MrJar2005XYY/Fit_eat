@@ -193,3 +193,50 @@ def get_current_plan():
         return jsonify(None)
 
     return jsonify(plan.to_dict(include_items=True))
+
+
+@meal_plan_bp.route('/plans/<int:plan_id>/shopping-list', methods=['GET'])
+def get_shopping_list(plan_id):
+    """生成购物清单"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': '未登录'}), 401
+
+    plan = MealPlan.query.filter_by(id=plan_id, user_id=user.id).first()
+    if not plan:
+        return jsonify({'success': False, 'message': '计划不存在'}), 404
+
+    items = MealPlanItem.query.filter_by(plan_id=plan_id).all()
+
+    # 汇总食材
+    shopping_items = {}
+    for item in items:
+        if item.food and item.food.ingredients:
+            import json
+            try:
+                ingredients = json.loads(item.food.ingredients)
+            except:
+                ingredients = []
+
+            for ing in ingredients:
+                name = ing.get('name', '') if isinstance(ing, dict) else str(ing)
+                amount = ing.get('amount', '') if isinstance(ing, dict) else ''
+
+                if name:
+                    if name not in shopping_items:
+                        shopping_items[name] = {
+                            'name': name,
+                            'amount': amount,
+                            'foods': [],
+                            'count': 0
+                        }
+                    shopping_items[name]['count'] += 1
+                    if item.food.name not in shopping_items[name]['foods']:
+                        shopping_items[name]['foods'].append(item.food.name)
+
+    return jsonify({
+        'planId': plan_id,
+        'planName': plan.name,
+        'items': list(shopping_items.values()),
+        'totalItems': len(shopping_items),
+    })
