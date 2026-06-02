@@ -369,3 +369,135 @@ def suggest_meals():
         },
         'suggestions': [f.to_dict() for f in foods[:6]]
     })
+
+
+@diet_bp.route('/monthly-report', methods=['GET'])
+def monthly_report():
+    """月度饮食报告"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': '未登录'}), 401
+
+    today = datetime.utcnow()
+    month = request.args.get('month', today.month, type=int)
+    year = request.args.get('year', today.year, type=int)
+
+    # 计算月份范围
+    month_start = datetime(year, month, 1)
+    if month == 12:
+        month_end = datetime(year + 1, 1, 1)
+    else:
+        month_end = datetime(year, month + 1, 1)
+
+    # 获取本月所有饮食记录
+    records = DietRecord.query.filter(
+        DietRecord.user_id == user.id,
+        DietRecord.recorded_at >= month_start,
+        DietRecord.recorded_at < month_end
+    ).all()
+
+    # 统计数据
+    total_days = (month_end - month_start).days
+    days_with_records = len(set(r.recorded_at.date() for r in records))
+    total_calories = sum(r.calories for r in records)
+    total_protein = sum(r.protein for r in records)
+    total_carbs = sum(r.carbs for r in records)
+    total_fat = sum(r.fat for r in records)
+
+    target = user.target_calories or 1800
+    avg_calories = round(total_calories / days_with_records) if days_with_records > 0 else 0
+
+    # 按餐次统计
+    by_meal = {}
+    for r in records:
+        meal = r.meal_type or 'other'
+        if meal not in by_meal:
+            by_meal[meal] = {'calories': 0, 'count': 0}
+        by_meal[meal]['calories'] += r.calories
+        by_meal[meal]['count'] += 1
+
+    # 按日期统计热量
+    daily_calories = {}
+    for r in records:
+        date_str = r.recorded_at.strftime('%Y-%m-%d')
+        if date_str not in daily_calories:
+            daily_calories[date_str] = 0
+        daily_calories[date_str] += r.calories
+
+    # 计算达标天数
+    on_target_days = sum(1 for cal in daily_calories.values() if cal <= target * 1.1 and cal >= target * 0.8)
+
+    return jsonify({
+        'year': year,
+        'month': month,
+        'totalDays': total_days,
+        'recordDays': days_with_records,
+        'totalCalories': total_calories,
+        'avgCalories': avg_calories,
+        'targetCalories': target,
+        'onTargetDays': on_target_days,
+        'totalProtein': round(total_protein, 1),
+        'totalCarbs': round(total_carbs, 1),
+        'totalFat': round(total_fat, 1),
+        'byMeal': by_meal,
+        'dailyCalories': daily_calories,
+    })
+
+
+@diet_bp.route('/nutrition-breakdown', methods=['GET'])
+def nutrition_breakdown():
+    """营养素占比分析"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': '未登录'}), 401
+
+    days = request.args.get('days', 7, type=int)
+    start_date = datetime.utcnow() - timedelta(days=days)
+
+    records = DietRecord.query.filter(
+        DietRecord.user_id == user.id,
+        DietRecord.recorded_at >= start_date
+    ).all()
+
+    total_calories = sum(r.calories for r in records)
+    total_protein = sum(r.protein for r in records)
+    total_carbs = sum(r.carbs for r in records)
+    total_fat = sum(r.fat for r in records)
+
+    # 计算各营养素提供的热量
+    protein_cal = total_protein * 4  # 蛋白质每克4卡
+    carbs_cal = total_carbs * 4      # 碳水每克4卡
+    fat_cal = total_fat * 9          # 脂肪每克9卡
+
+    # 计算占比
+    if total_calories > 0:
+        protein_pct = round(protein_cal / total_calories * 100)
+        carbs_pct = round(carbs_cal / total_calories * 100)
+        fat_pct = round(fat_cal / total_calories * 100)
+    else:
+        protein_pct = carbs_pct = fat_pct = 0
+
+    return jsonify({
+        'days': days,
+        'totalCalories': total_calories,
+        'protein': {
+            'grams': round(total_protein, 1),
+            'calories': round(protein_cal),
+            'percentage': protein_pct,
+        },
+        'carbs': {
+            'grams': round(total_carbs, 1),
+            'calories': round(carbs_cal),
+            'percentage': carbs_pct,
+        },
+        'fat': {
+            'grams': round(total_fat, 1),
+            'calories': round(fat_cal),
+            'percentage': fat_pct,
+        },
+        'recommended': {
+            'protein': '10-35%',
+            'carbs': '45-65%',
+            'fat': '20-35%',
+        }
+    })
