@@ -319,6 +319,7 @@ const Utils = {
    * @returns {string} 格式化后的字符串
    */
   formatNumber(num) {
+    num = num || 0;
     if (num >= 1000) {
       return (num / 1000).toFixed(1) + 'k';
     }
@@ -331,7 +332,10 @@ const Utils = {
    * @returns {string} 格式化后的日期
    */
   formatDate(dateStr) {
+    if (!dateStr) return '';
     const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+
     const now = new Date();
     const diff = now - date;
 
