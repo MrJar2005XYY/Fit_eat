@@ -288,12 +288,40 @@
       document.getElementById('age-display').textContent = val;
     }
 
-    function goToNext() {
+    async function goToNext() {
       bodyData.height = document.getElementById('input-height').value;
       bodyData.weight = document.getElementById('input-weight').value;
       bodyData.bodyFat = document.getElementById('input-bodyfat').value;
+
+      // 验证输入
+      if (!bodyData.height || !bodyData.weight) {
+        Utils.showToast('请填写身高和体重');
+        return;
+      }
+
+      // 保存到localStorage
       Utils.storage.set('ai_body_data', bodyData);
-      window.location.href = 'ai-plan.html';
+
+      // 调用后端API保存身体数据
+      try {
+        const result = await API.ai.submitBodyData({
+          gender: bodyData.gender,
+          age: bodyData.age,
+          height: parseFloat(bodyData.height),
+          weight: parseFloat(bodyData.weight),
+          body_fat: bodyData.bodyFat ? parseFloat(bodyData.bodyFat) : 0
+        });
+
+        if (result.success) {
+          window.location.href = 'ai-plan.html';
+        } else {
+          Utils.showToast(result.message || '保存失败');
+        }
+      } catch (error) {
+        console.error('保存身体数据失败:', error);
+        // 即使API失败也跳转，使用本地数据
+        window.location.href = 'ai-plan.html';
+      }
     }
 
     function tiltCard(e, card) {

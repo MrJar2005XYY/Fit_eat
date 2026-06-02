@@ -279,28 +279,8 @@
   <script src="../js/common.js"></script>
   <script src="../js/components.js"></script>
   <script>
-    const mealPlan = [
-      {
-        name: '蓝莓坚果酸奶碗', calories: 320, protein: 18, type: 'breakfast',
-        tags: ['高蛋白', '免煮'],
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCBryIQ5tZE6o2ofnuhWPvxu4hm-dZ3a_HCwxoyk40yKzizC7m6z_bby013e8905S1nW8gkIb4G4iN800sM1L2FtY1QqPwdaGd9u5a1y8MBp0gFFawuRyxjK6gFQ8NuaFBixNSDxpkH81e2NUOd5DFiCpEyDGpMh5EcK663YjBr0kw9vOey4MofsioB9TVKIKUV0B4WqWVwwoLGOBZMB7r_ttlGoq6jaCQIM2ma5GXC5GE4ShomIn8uKCk9tGYbOsqtOMSx_9Y5-zmd'
-      },
-      {
-        name: '香煎鸡胸肉暖沙拉', calories: 450, protein: 35, type: 'lunch',
-        tags: ['低GI', '优质脂'],
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBL22umvGsNCB29_UWSHOsvz3kAZT1Er0GAiWiKDgMOnPloyGMkPtgtdE6KjW_dOyCsGRTj4keyazSBCis4YOmau38boWMntEEUjBQkd_4B9g49WUTQPbbkPdQELD2EGEsW-aalvMmLoffgQThhIDjWxOdvhSQNwNSf2A0abZD-y3YT8ccaLtsx7JxgcOksZes8xJxTTSM4Q9UWIxn_MTLEykY4hF0X34MWPFmdjr76BYHhl78mG1WtgflGY7_dP35J2THL8BUE8gs7'
-      },
-      {
-        name: '混合坚果与苹果片', calories: 180, protein: 5, type: 'snack',
-        tags: ['高纤维'],
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAjGXnKNraI9Y9odxH3H01c68BCw52UaGtQd__F72qBuinX5EAa1VyfojRVx3cMRigCirJ8S2z-7RxKFbqPvtrLrxUqsr2OMRwMyEMcM-N248HY4yoMbAH3uVXQLqv-9j332Vfb3woCcnvil8bSiV4-HO9E2Q6d3kb6loNfw4op2dFJ-FEvjXg7Qu-B9yQp8UHiMBpmPqrwg3n_qHfW2qWi37MY1vSV_7TibDcPP1evXqZwZRp-YGdS0FKFzHP7Z5aJAB5SIxQmFnWc'
-      },
-      {
-        name: '柠檬香煎三文鱼配芦笋', calories: 380, protein: 28, type: 'dinner',
-        tags: ['Omega-3', '低碳水'],
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD6UlzqXdAvKEfShYuVrgLEmA6aSxCuuWjQzOYdQQri6Hcg90TMy189kWAeLts5cUqPN286U__KXEpJTBr-l0ttIOpnncwIAr9npIxcMEyyzViGuHu_H3uo-a5HGUVE7sPRhgUqmdTSxZm0NkT3lCvKgm8gc02QsAhkc1pOjrg2TASErtHl4Az-m7r0KJuCipjLcXX2iAZT0YPMIJMX64NCep390-lkWjfFpcDjuqTBK4TtMfMSs95O4ejoFkPKLVpNKs5RqKoa5qvG'
-      }
-    ];
+    let planData = null;
+    let mealPlan = [];
 
     const typeColors = {
       breakfast: 'bg-green-100 text-green-700',
@@ -316,9 +296,69 @@
       snack: '加餐'
     };
 
-    function initPage() {
+    async function initPage() {
       renderWeekCalendar();
-      renderMealPlan();
+      await loadPlanData();
+    }
+
+    async function loadPlanData() {
+      try {
+        planData = await API.ai.getPlan();
+
+        // 更新BMI显示
+        const bmiElements = document.querySelectorAll('.text-4xl.font-extrabold');
+        if (bmiElements.length > 0) {
+          bmiElements[0].textContent = planData.bmi || '22.5';
+        }
+
+        // 更新每日热量
+        const calorieElements = document.querySelectorAll('.font-bold.text-gray-800');
+        calorieElements.forEach(el => {
+          if (el.textContent.includes('kcal')) {
+            el.textContent = (planData.dailyCalories || 1500).toLocaleString() + ' kcal';
+          }
+        });
+
+        // 更新宏量营养素显示
+        const macros = planData.macros || {};
+        const macroElements = document.querySelectorAll('.text-xs.font-bold');
+        macroElements.forEach(el => {
+          const parent = el.closest('.bg-white.rounded-xl');
+          if (parent) {
+            const label = parent.querySelector('.text-xs.text-gray-500');
+            if (label) {
+              if (label.textContent === '蛋白质') el.textContent = macros.protein + 'g';
+              if (label.textContent === '碳水') el.textContent = macros.carbs + 'g';
+              if (label.textContent === '脂肪') el.textContent = macros.fat + 'g';
+            }
+          }
+        });
+
+        // 构建mealPlan数组
+        const meals = planData.meals || {};
+        mealPlan = [];
+        Object.keys(meals).forEach(type => {
+          meals[type].forEach(meal => {
+            mealPlan.push({
+              ...meal,
+              type: type,
+              image: meal.image || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2Ij48cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIGZpbGw9IiNlMmUyZTIiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzZmN2E2YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuivrTwvdGV4dD48L3N2Zz4='
+            });
+          });
+        });
+
+        renderMealPlan();
+      } catch (error) {
+        console.error('加载方案失败:', error);
+        // 使用默认数据
+        mealPlan = [
+          { name: '蓝莓坚果酸奶碗', calories: 320, protein: 18, type: 'breakfast', tags: ['高蛋白', '免煮'] },
+          { name: '香煎鸡胸肉暖沙拉', calories: 450, protein: 35, type: 'lunch', tags: ['低GI', '优质脂'] },
+          { name: '混合坚果与苹果片', calories: 180, protein: 5, type: 'snack', tags: ['高纤维'] },
+          { name: '柠檬香煎三文鱼配芦笋', calories: 380, protein: 28, type: 'dinner', tags: ['Omega-3', '低碳水'] }
+        ];
+        renderMealPlan();
+      }
     }
 
     function renderWeekCalendar() {
@@ -380,9 +420,19 @@
       Utils.showToast(`查看 ${name} 详情`);
     }
 
-    function applyPlan() {
-      Utils.showToast('计划已应用到您的日程');
-      setTimeout(() => { window.location.href = 'home.html'; }, 1500);
+    async function applyPlan() {
+      try {
+        const result = await API.ai.applyPlan();
+        if (result.success) {
+          Utils.showToast('计划已应用到您的日程');
+          setTimeout(() => { window.location.href = 'home.html'; }, 1500);
+        } else {
+          Utils.showToast(result.message || '应用失败');
+        }
+      } catch (error) {
+        console.error('应用计划失败:', error);
+        Utils.showToast('应用失败，请重试');
+      }
     }
 
     document.addEventListener('DOMContentLoaded', initPage);

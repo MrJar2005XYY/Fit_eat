@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 from models import db
 from models.user import User
+from models.food import Food
 from models.achievement import Achievement, UserAchievement, AIBodyData
 
 achievement_bp = Blueprint('achievement', __name__)
@@ -84,32 +85,70 @@ def get_plan():
 
     body_data = AIBodyData.query.filter_by(user_id=user.id).order_by(AIBodyData.created_at.desc()).first()
 
-    bmi = body_data.bmi if body_data else (round(user.weight / ((user.height / 100) ** 2), 1) if user.height > 0 else 22.5)
-    daily_calories = body_data.daily_calories if body_data else 1500
+    # 计算BMI和每日热量
+    height = body_data.height if body_data else user.height
+    weight = body_data.weight if body_data else user.weight
+    bmi = round(weight / ((height / 100) ** 2), 1) if height > 0 else 22.5
+
+    # 基于BMR计算每日热量需求 (Harris-Benedict公式)
+    age = body_data.age if body_data else user.age or 25
+    gender = body_data.gender if body_data else user.gender or 'male'
+
+    if gender == 'male':
+        bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
+    else:
+        bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)
+
+    # 根据目标调整热量
+    daily_calories = int(bmr * 0.85)  # 减脂：减少15%
+    if daily_calories < 1200:
+        daily_calories = 1200
+
+    # 计算宏量营养素
+    protein = int(weight * 1.5)  # 每公斤体重1.5g蛋白质
+    fat = int(daily_calories * 0.25 / 9)  # 25%热量来自脂肪
+    carbs = int((daily_calories - protein * 4 - fat * 9) / 4)  # 剩余来自碳水
+
+    # 从食物库获取食物推荐
+    foods = Food.query.all()
+
+    # 按餐次分类食物
+    breakfast_foods = [f for f in foods if f.meal_type == 'breakfast'] or foods[:10]
+    lunch_foods = [f for f in foods if f.meal_type == 'lunch'] or foods[10:20]
+    dinner_foods = [f for f in foods if f.meal_type == 'dinner'] or foods[20:30]
+    snack_foods = [f for f in foods if f.meal_type == 'snack'] or foods[30:40]
+
+    # 为每个餐次选择2-3个推荐
+    import random
+    def select_meals(food_list, count=2):
+        if len(food_list) <= count:
+            selected = food_list
+        else:
+            selected = random.sample(food_list, count)
+        return [{
+            'id': f.id,
+            'name': f.name,
+            'calories': f.calories,
+            'protein': f.protein,
+            'carbs': f.carbs,
+            'fat': f.fat,
+            'tags': [t.strip() for t in f.tags.split(',') if t.strip()] if f.tags else [],
+            'image': f.image
+        } for f in selected]
 
     return jsonify({
         'bmi': bmi,
         'dailyCalories': daily_calories,
         'macros': {
-            'protein': body_data.protein if body_data else 95,
-            'carbs': body_data.carbs if body_data else 140,
-            'fat': body_data.fat if body_data else 45
+            'protein': protein,
+            'carbs': carbs,
+            'fat': fat
         },
         'meals': {
-            'breakfast': [
-                {'name': '蓝莓坚果酸奶碗', 'calories': 320, 'protein': 18, 'tags': ['高蛋白', '免煮']},
-                {'name': '牛油果水波蛋', 'calories': 345, 'protein': 18, 'tags': ['高蛋白', '低GI']}
-            ],
-            'lunch': [
-                {'name': '香煎鸡胸肉暖沙拉', 'calories': 450, 'protein': 35, 'tags': ['低GI', '优质脂']},
-                {'name': '嫩煎鸡胸肉沙拉', 'calories': 450, 'protein': 35, 'tags': ['低GI']}
-            ],
-            'snack': [
-                {'name': '混合坚果与苹果片', 'calories': 180, 'protein': 5, 'tags': ['高纤维']}
-            ],
-            'dinner': [
-                {'name': '柠檬香煎三文鱼配芦笋', 'calories': 380, 'protein': 28, 'tags': ['Omega-3', '低碳水']}
-            ]
+            'breakfast': select_meals(breakfast_foods),
+            'lunch': select_meals(lunch_foods),
+            'snack': select_meals(snack_foods, 1),
+            'dinner': select_meals(dinner_foods)
         }
     })
 
