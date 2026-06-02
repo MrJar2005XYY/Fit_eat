@@ -63,6 +63,10 @@ def toggle_like(post_id):
     if not user:
         return jsonify({'success': False, 'message': '未登录'}), 401
 
+    post = CommunityPost.query.get(post_id)
+    if not post:
+        return jsonify({'success': False, 'message': '动态不存在'}), 404
+
     existing = Like.query.filter_by(post_id=post_id, user_id=user.id).first()
     if existing:
         db.session.delete(existing)
@@ -80,6 +84,10 @@ def add_comment(post_id):
     user = get_current_user()
     if not user:
         return jsonify({'success': False, 'message': '未登录'}), 401
+
+    post = CommunityPost.query.get(post_id)
+    if not post:
+        return jsonify({'success': False, 'message': '动态不存在'}), 404
 
     data = request.get_json()
     if not data:
