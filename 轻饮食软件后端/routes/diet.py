@@ -91,6 +91,8 @@ def add_record():
         return jsonify({'success': False, 'message': '未登录'}), 401
 
     data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': '请求数据无效'}), 400
     amount = data.get('amount', 1.0)
 
     # 如果有food_id，从Food表获取营养数据

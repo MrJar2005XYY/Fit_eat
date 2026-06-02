@@ -38,6 +38,8 @@ def create_post():
         return jsonify({'success': False, 'message': '未登录'}), 401
 
     data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': '请求数据无效'}), 400
     post = CommunityPost(
         user_id=user.id,
         content=data.get('content', ''),
@@ -80,6 +82,8 @@ def add_comment(post_id):
         return jsonify({'success': False, 'message': '未登录'}), 401
 
     data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': '请求数据无效'}), 400
     content = data.get('content', '').strip()
     if not content:
         return jsonify({'success': False, 'message': '评论不能为空'}), 400

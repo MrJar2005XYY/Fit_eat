@@ -27,6 +27,8 @@ def update_profile():
         return jsonify({'success': False, 'message': '未登录'}), 401
 
     data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': '请求数据无效'}), 400
     if 'username' in data:
         user.username = data['username']
     if 'avatar' in data:
@@ -59,6 +61,8 @@ def update_account_id():
         return jsonify({'success': False, 'message': '未登录'}), 401
 
     data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': '请求数据无效'}), 400
     new_account_id = data.get('accountId', '').strip()
 
     if not new_account_id:
@@ -86,6 +90,8 @@ def update_password():
         return jsonify({'success': False, 'message': '未登录'}), 401
 
     data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': '请求数据无效'}), 400
     old_password = data.get('oldPassword', '')
     new_password = data.get('newPassword', '')
 

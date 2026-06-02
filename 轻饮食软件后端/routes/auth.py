@@ -8,6 +8,8 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': '请求数据无效'}), 400
     account_id = data.get('accountId', '').strip()
     username = data.get('username', '').strip()
     email = data.get('email', '').strip()
@@ -34,6 +36,8 @@ def register():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': '请求数据无效'}), 400
     account_id = data.get('accountId', '').strip()
     password = data.get('password', '')
 

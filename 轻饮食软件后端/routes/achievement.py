@@ -115,6 +115,8 @@ def submit_body_data():
         return jsonify({'success': False, 'message': '未登录'}), 401
 
     data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': '请求数据无效'}), 400
     height = data.get('height', 0)
     weight = data.get('weight', 0)
     bmi = round(weight / ((height / 100) ** 2), 1) if height > 0 else 0
