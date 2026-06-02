@@ -245,17 +245,18 @@
     async function confirmDelete() {
       if (!deletingPostId) return;
 
+      const postId = deletingPostId;
       const btn = document.getElementById('confirm-delete-btn');
       btn.textContent = '删除中...';
       btn.disabled = true;
 
       try {
-        const res = await API.community.deletePost(deletingPostId);
+        const res = await API.community.deletePost(postId);
         if (res.success) {
           Utils.showToast('已删除');
           closeDeleteConfirm();
           // 从页面移除该帖子卡片
-          const card = document.getElementById(`post-${deletingPostId}`);
+          const card = document.getElementById(`post-${postId}`);
           if (card) {
             card.style.transition = 'all 0.3s ease';
             card.style.opacity = '0';
@@ -278,7 +279,6 @@
       } finally {
         btn.textContent = '删除';
         btn.disabled = false;
-        deletingPostId = null;
       }
     }
 
