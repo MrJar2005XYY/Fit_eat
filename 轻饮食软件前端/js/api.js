@@ -116,6 +116,18 @@ const API = {
 
     getNutritionRadar: async () => {
       return request('/diet/nutrition-radar');
+    },
+
+    getScore: async () => {
+      return request('/diet/score');
+    },
+
+    getMonthlyReport: async (year, month) => {
+      return request(`/diet/monthly-report?year=${year}&month=${month}`);
+    },
+
+    getNutritionBreakdown: async (days = 7) => {
+      return request(`/diet/nutrition-breakdown?days=${days}`);
     }
   },
 

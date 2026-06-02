@@ -82,15 +82,15 @@
         <div id="radar-chart" class="flex justify-center"></div>
         <div class="mt-4 flex justify-between text-center">
           <div>
-            <p class="text-2xl font-extrabold text-green-700">88</p>
+            <p class="text-2xl font-extrabold text-green-700" id="score-value">--</p>
             <p class="text-xs text-gray-500">综合评分</p>
           </div>
           <div>
-            <p class="text-2xl font-extrabold text-green-700">A-</p>
+            <p class="text-2xl font-extrabold text-green-700" id="grade-value">--</p>
             <p class="text-xs text-gray-500">饮食等级</p>
           </div>
           <div>
-            <p class="text-2xl font-extrabold text-green-700">良好</p>
+            <p class="text-2xl font-extrabold text-green-700" id="status-value">--</p>
             <p class="text-xs text-gray-500">状态</p>
           </div>
         </div>
@@ -387,12 +387,13 @@
 
     async function initPage() {
       try {
-        const [user, weeklyCalories, radarData, macros, water] = await Promise.all([
+        const [user, weeklyCalories, radarData, macros, water, score] = await Promise.all([
           API.user.getProfile(),
           API.diet.getWeeklyCalories(),
           API.diet.getNutritionRadar(),
           API.diet.getMacros(),
-          API.diet.getWaterIntake()
+          API.diet.getWaterIntake(),
+          API.diet.getScore()
         ]);
 
         renderDatePicker();
@@ -401,9 +402,17 @@
         renderDesktopMacros(macros);
         renderMacros(macros);
         renderWaterTracker(water);
+        renderScore(score);
       } catch (error) {
         console.error('加载数据失败:', error);
       }
+    }
+
+    function renderScore(scoreData) {
+      if (!scoreData) return;
+      document.getElementById('score-value').textContent = scoreData.score || 0;
+      document.getElementById('grade-value').textContent = scoreData.grade || '-';
+      document.getElementById('status-value').textContent = scoreData.status || '-';
     }
 
     function renderDatePicker() {

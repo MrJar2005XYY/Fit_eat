@@ -297,6 +297,151 @@ def nutrition_radar():
     })
 
 
+@diet_bp.route('/score', methods=['GET'])
+def get_score():
+    """获取综合评分和等级"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': '未登录'}), 401
+
+    start, end = today_range()
+    records = DietRecord.query.filter(
+        DietRecord.user_id == user.id,
+        DietRecord.recorded_at >= start,
+        DietRecord.recorded_at < end
+    ).all()
+
+    if not records:
+        return jsonify({
+            'score': 0,
+            'grade': '-',
+            'status': '暂无数据',
+            'details': {}
+        })
+
+    target = user.target_calories or 1800
+    total_calories = sum(r.calories for r in records)
+    total_protein = sum(r.protein for r in records)
+    total_carbs = sum(r.carbs for r in records)
+    total_fat = sum(r.fat for r in records)
+    total_fiber = sum(r.fiber for r in records)
+
+    # 计算各维度得分（0-100）
+    scores = {}
+
+    # 1. 热量控制得分（目标±10%为满分）
+    calorie_ratio = total_calories / target if target > 0 else 0
+    if 0.9 <= calorie_ratio <= 1.1:
+        scores['calories'] = 100
+    elif 0.8 <= calorie_ratio <= 1.2:
+        scores['calories'] = 80
+    elif 0.7 <= calorie_ratio <= 1.3:
+        scores['calories'] = 60
+    else:
+        scores['calories'] = max(0, 100 - abs(calorie_ratio - 1) * 100)
+
+    # 2. 蛋白质得分（推荐80g）
+    protein_ratio = total_protein / 80
+    if 0.8 <= protein_ratio <= 1.2:
+        scores['protein'] = 100
+    elif 0.6 <= protein_ratio <= 1.5:
+        scores['protein'] = 80
+    else:
+        scores['protein'] = max(0, 100 - abs(protein_ratio - 1) * 50)
+
+    # 3. 碳水得分（推荐200g）
+    carbs_ratio = total_carbs / 200
+    if 0.8 <= carbs_ratio <= 1.2:
+        scores['carbs'] = 100
+    elif 0.6 <= carbs_ratio <= 1.5:
+        scores['carbs'] = 80
+    else:
+        scores['carbs'] = max(0, 100 - abs(carbs_ratio - 1) * 50)
+
+    # 4. 脂肪得分（推荐60g）
+    fat_ratio = total_fat / 60
+    if 0.8 <= fat_ratio <= 1.2:
+        scores['fat'] = 100
+    elif 0.6 <= fat_ratio <= 1.5:
+        scores['fat'] = 80
+    else:
+        scores['fat'] = max(0, 100 - abs(fat_ratio - 1) * 50)
+
+    # 5. 膳食纤维得分（推荐25g）
+    fiber_ratio = total_fiber / 25
+    if fiber_ratio >= 0.8:
+        scores['fiber'] = 100
+    elif fiber_ratio >= 0.6:
+        scores['fiber'] = 80
+    else:
+        scores['fiber'] = max(0, fiber_ratio * 100)
+
+    # 6. 食物多样性得分
+    food_types = len(set(r.food_id for r in records if r.food_id))
+    if food_types >= 5:
+        scores['variety'] = 100
+    elif food_types >= 3:
+        scores['variety'] = 80
+    else:
+        scores['variety'] = food_types * 20
+
+    # 计算综合得分（加权平均）
+    weights = {
+        'calories': 0.25,
+        'protein': 0.20,
+        'carbs': 0.15,
+        'fat': 0.15,
+        'fiber': 0.10,
+        'variety': 0.15
+    }
+
+    total_score = sum(scores[key] * weights[key] for key in scores)
+    total_score = round(total_score)
+
+    # 确定等级
+    if total_score >= 90:
+        grade = 'A+'
+        status = '优秀'
+    elif total_score >= 85:
+        grade = 'A'
+        status = '优秀'
+    elif total_score >= 80:
+        grade = 'A-'
+        status = '良好'
+    elif total_score >= 75:
+        grade = 'B+'
+        status = '良好'
+    elif total_score >= 70:
+        grade = 'B'
+        status = '良好'
+    elif total_score >= 65:
+        grade = 'B-'
+        status = '一般'
+    elif total_score >= 60:
+        grade = 'C+'
+        status = '一般'
+    elif total_score >= 50:
+        grade = 'C'
+        status = '需改善'
+    else:
+        grade = 'D'
+        status = '需改善'
+
+    return jsonify({
+        'score': total_score,
+        'grade': grade,
+        'status': status,
+        'details': scores,
+        'nutrition': {
+            'calories': total_calories,
+            'protein': round(total_protein, 1),
+            'carbs': round(total_carbs, 1),
+            'fat': round(total_fat, 1),
+            'fiber': round(total_fiber, 1),
+        }
+    })
+
+
 @diet_bp.route('/suggest', methods=['GET'])
 def suggest_meals():
     """智能餐食搭配推荐"""
