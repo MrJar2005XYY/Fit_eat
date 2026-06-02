@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify, request, session
+from datetime import datetime, timedelta
 from models import db
 from models.user import User
 from models.food import Food
+from models.diet import DietRecord
+from models.community import CommunityPost
 from models.achievement import Achievement, UserAchievement, AIBodyData
 
 achievement_bp = Blueprint('achievement', __name__)
@@ -12,6 +15,70 @@ def get_current_user():
     if not user_id:
         return None
     return User.query.get(user_id)
+
+
+def check_and_unlock_achievements(user_id):
+    """检查并解锁用户成就"""
+    user = User.query.get(user_id)
+    if not user:
+        return []
+
+    unlocked = []
+    achievements = Achievement.query.all()
+    existing = {ua.achievement_id for ua in UserAchievement.query.filter_by(user_id=user_id).all()}
+
+    for ach in achievements:
+        if ach.id in existing:
+            continue
+
+        should_unlock = False
+
+        if ach.condition_type == 'records':
+            # 饮食记录数量
+            count = DietRecord.query.filter_by(user_id=user_id).count()
+            should_unlock = count >= ach.condition_value
+
+        elif ach.condition_type == 'streak':
+            # 连续打卡天数
+            today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            streak = 0
+            for i in range(ach.condition_value):
+                day = today - timedelta(days=i)
+                day_end = day + timedelta(days=1)
+                has_record = DietRecord.query.filter(
+                    DietRecord.user_id == user_id,
+                    DietRecord.recorded_at >= day,
+                    DietRecord.recorded_at < day_end
+                ).first()
+                if has_record:
+                    streak += 1
+                else:
+                    break
+            should_unlock = streak >= ach.condition_value
+
+        elif ach.condition_type == 'community':
+            # 社区帖子数量
+            count = CommunityPost.query.filter_by(user_id=user_id).count()
+            should_unlock = count >= ach.condition_value
+
+        elif ach.condition_type == 'weight':
+            # 完成体重记录（使用AI身体数据）
+            has_body_data = AIBodyData.query.filter_by(user_id=user_id).first()
+            should_unlock = has_body_data is not None
+
+        elif ach.condition_type == 'plan':
+            # 使用AI方案
+            should_unlock = user.plan_days > 0
+
+        if should_unlock:
+            ua = UserAchievement(user_id=user_id, achievement_id=ach.id)
+            db.session.add(ua)
+            unlocked.append(ach)
+
+    if unlocked:
+        db.session.commit()
+
+    return unlocked
 
 
 @achievement_bp.route('/all', methods=['GET'])
@@ -74,6 +141,10 @@ def submit_body_data():
     user.body_fat = data.get('body_fat', user.body_fat)
 
     db.session.commit()
+
+    # 检查成就解锁
+    check_and_unlock_achievements(user.id)
+
     return jsonify({'success': True})
 
 
@@ -161,4 +232,11 @@ def apply_plan():
 
     user.plan_days = user.plan_days + 1
     db.session.commit()
-    return jsonify({'success': True})
+
+    # 检查成就解锁
+    unlocked = check_and_unlock_achievements(user.id)
+
+    return jsonify({
+        'success': True,
+        'unlockedAchievements': [a.name for a in unlocked]
+    })

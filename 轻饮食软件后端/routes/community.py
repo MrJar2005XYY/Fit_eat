@@ -47,6 +47,11 @@ def create_post():
     )
     db.session.add(post)
     db.session.commit()
+
+    # 检查成就解锁
+    from routes.achievement import check_and_unlock_achievements
+    check_and_unlock_achievements(user.id)
+
     return jsonify({'success': True, 'postId': post.id})
 
 
