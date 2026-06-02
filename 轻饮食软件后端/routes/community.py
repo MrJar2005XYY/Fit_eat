@@ -45,7 +45,8 @@ def create_post():
         content=data.get('content', ''),
         image=data.get('image', ''),
         location=data.get('location', ''),
-        category=data.get('category', 'all')
+        category=data.get('category', 'all'),
+        food_id=data.get('foodId')
     )
     db.session.add(post)
     db.session.commit()

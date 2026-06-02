@@ -11,15 +11,26 @@ class CommunityPost(db.Model):
     image = db.Column(db.String(500), default='')
     location = db.Column(db.String(50), default='')
     category = db.Column(db.String(20), default='all')
+    food_id = db.Column(db.Integer, db.ForeignKey('foods.id'), nullable=True)  # 关联食物
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     comments = db.relationship('Comment', backref='post', lazy='dynamic', cascade='all, delete-orphan')
     likes = db.relationship('Like', backref='post', lazy='dynamic', cascade='all, delete-orphan')
+    food = db.relationship('Food', backref='community_posts')
 
     def to_dict(self, current_user_id=None):
         is_liked = False
         if current_user_id:
             is_liked = Like.query.filter_by(post_id=self.id, user_id=current_user_id).first() is not None
+
+        food_info = None
+        if self.food:
+            food_info = {
+                'id': self.food.id,
+                'name': self.food.name,
+                'image': self.food.image,
+                'calories': self.food.calories,
+            }
 
         return {
             'id': self.id,
@@ -32,6 +43,7 @@ class CommunityPost(db.Model):
             'image': self.image,
             'location': self.location,
             'category': self.category,
+            'food': food_info,
             'likes': self.likes.count(),
             'comments': self.comments.count(),
             'isLiked': is_liked,
