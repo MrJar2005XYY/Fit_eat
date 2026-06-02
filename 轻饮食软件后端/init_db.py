@@ -7,6 +7,7 @@ from models.food import Food
 from models.achievement import Achievement
 from models.community import CommunityPost
 from models.diet import DietRecord, WaterRecord
+from models.exercise import ExerciseType
 
 app = create_app()
 
@@ -287,6 +288,39 @@ def init_database(force=False):
                     recorded_at=day + timedelta(hours=8 + cup * 2)
                 ))
         db.session.add_all(water_records)
+
+        # 创建运动类型库
+        exercise_types = [
+            # 有氧运动
+            ExerciseType(name='跑步', category='cardio', met=8.0, icon='directions_run', description='户外或跑步机跑步'),
+            ExerciseType(name='快走', category='cardio', met=4.5, icon='directions_walk', description='快速步行'),
+            ExerciseType(name='骑行', category='cardio', met=7.0, icon='directions_bike', description='自行车骑行'),
+            ExerciseType(name='游泳', category='cardio', met=7.0, icon='pool', description='自由泳/蛙泳等'),
+            ExerciseType(name='跳绳', category='cardio', met=10.0, icon='fitness_center', description='跳绳运动'),
+            ExerciseType(name='椭圆机', category='cardio', met=5.0, icon='fitness_center', description='椭圆机训练'),
+            ExerciseType(name='划船机', category='cardio', met=6.0, icon='fitness_center', description='划船机训练'),
+            # 力量训练
+            ExerciseType(name='力量训练', category='strength', met=6.0, icon='fitness_center', description='器械/自由重量'),
+            ExerciseType(name='俯卧撑', category='strength', met=5.0, icon='fitness_center', description='自重训练'),
+            ExerciseType(name='深蹲', category='strength', met=5.0, icon='fitness_center', description='腿部力量训练'),
+            ExerciseType(name='引体向上', category='strength', met=5.0, icon='fitness_center', description='背部力量训练'),
+            ExerciseType(name='平板支撑', category='strength', met=4.0, icon='fitness_center', description='核心力量训练'),
+            # 柔韧/平衡
+            ExerciseType(name='瑜伽', category='flexibility', met=3.5, icon='self_improvement', description='瑜伽练习'),
+            ExerciseType(name='拉伸', category='flexibility', met=2.5, icon='accessibility_new', description='全身拉伸'),
+            ExerciseType(name='普拉提', category='flexibility', met=3.5, icon='self_improvement', description='普拉提训练'),
+            # 运动
+            ExerciseType(name='篮球', category='sports', met=7.0, icon='sports_basketball', description='篮球运动'),
+            ExerciseType(name='足球', category='sports', met=8.0, icon='sports_soccer', description='足球运动'),
+            ExerciseType(name='羽毛球', category='sports', met=5.5, icon='sports_tennis', description='羽毛球运动'),
+            ExerciseType(name='乒乓球', category='sports', met=4.0, icon='sports_tennis', description='乒乓球运动'),
+            ExerciseType(name='网球', category='sports', met=7.0, icon='sports_tennis', description='网球运动'),
+            # 日常活动
+            ExerciseType(name='爬楼梯', category='daily', met=5.0, icon='stairs', description='爬楼梯'),
+            ExerciseType(name='家务', category='daily', met=3.0, icon='cleaning_services', description='做家务'),
+            ExerciseType(name='散步', category='daily', met=2.5, icon='directions_walk', description='休闲散步'),
+        ]
+        db.session.add_all(exercise_types)
 
         db.session.commit()
         print('示例数据已填充')
