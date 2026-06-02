@@ -344,6 +344,27 @@ const API = {
     getSummary: async () => {
       return request('/health/summary');
     }
+  },
+
+  /**
+   * 发现页相关接口
+   */
+  discover: {
+    getIngredients: async (limit = 6) => {
+      return request(`/discover/ingredients?limit=${limit}`);
+    },
+
+    getArticles: async () => {
+      return request('/discover/articles');
+    },
+
+    getDailyTip: async () => {
+      return request('/discover/daily-tip');
+    },
+
+    getTags: async () => {
+      return request('/discover/tags');
+    }
   }
 };
 

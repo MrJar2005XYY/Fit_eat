@@ -219,30 +219,10 @@
     let currentPage = 1;
     let totalPages = 1;
 
-    const ingredients = [
-      { name: '鸡胸肉', benefit: '高蛋白低脂', icon: 'set_meal', color: 'orange' },
-      { name: '牛油果', benefit: '优质脂肪', icon: 'eco', color: 'green' },
-      { name: '三文鱼', benefit: 'Omega-3', icon: 'set_meal', color: 'blue' },
-      { name: '西兰花', benefit: '高纤维维C', icon: 'grass', color: 'green' },
-      { name: '藜麦', benefit: '完全蛋白', icon: 'grain', color: 'yellow' },
-      { name: '希腊酸奶', benefit: '益生菌高钙', icon: 'local_cafe', color: 'purple' },
-    ];
-
-    const healthArticles = [
-      { title: '减脂期间如何正确摄入碳水？', desc: '优质碳水 vs 精制碳水，选对才能瘦得快。', icon: 'grain', color: 'orange' },
-      { title: '蛋白质摄入量计算指南', desc: '体重 × 1.5-2g，运动人群需要更多。', icon: 'fitness_center', color: 'blue' },
-      { title: '8 种高饱腹感低热量食物', desc: '吃饱也能瘦，关键是选对食材。', icon: 'local_fire_department', color: 'red' },
-      { title: '水波蛋的完美做法', desc: '3 分钟学会，零失败的早餐必备技能。', icon: 'egg', color: 'yellow' },
-      { title: 'Omega-3 脂肪酸的重要性', desc: '为什么营养师都推荐每周吃两次鱼？', icon: 'spa', color: 'green' },
-    ];
-
-    const dailyTips = [
-      '早餐摄入全天 30% 的热量，能有效提升上午的代谢率。建议搭配蛋白质 + 复合碳水 + 少量健康脂肪。',
-      '每天饮水 2000ml 以上，餐前喝一杯水可以增加饱腹感，减少正餐摄入量约 15%。',
-      '减脂期间不必完全戒糖，适量天然果糖（水果）是安全的。但要避免添加糖和含糖饮料。',
-      '蔬菜占每餐的一半以上，既增加饱腹感又提供丰富的维生素和矿物质，热量却极低。',
-      '晚上 8 点后进食不会直接导致发胖，关键是全天总热量。但如果容易暴食，建议设定进食时间窗口。',
-    ];
+    // 从API加载数据
+    let ingredients = [];
+    let healthArticles = [];
+    let dailyTip = '';
 
     const typeColors = {
       breakfast: 'bg-green-100 text-green-700',
@@ -276,10 +256,56 @@
     let searchTimer = null;
 
     async function initPage() {
-      await loadRecipes('all');
-      renderIngredients();
-      renderHealthArticles();
-      renderDailyTip();
+      // 并行加载所有数据
+      await Promise.all([
+        loadRecipes('all'),
+        loadIngredients(),
+        loadHealthArticles(),
+        loadDailyTip()
+      ]);
+    }
+
+    async function loadIngredients() {
+      try {
+        const data = await request('/discover/ingredients?limit=6');
+        ingredients = data || [];
+        renderIngredients();
+      } catch (error) {
+        console.error('加载食材百科失败:', error);
+        // 使用默认数据
+        ingredients = [
+          { name: '鸡胸肉', benefit: '高蛋白低脂' },
+          { name: '牛油果', benefit: '优质脂肪' },
+          { name: '三文鱼', benefit: 'Omega-3' },
+        ];
+        renderIngredients();
+      }
+    }
+
+    async function loadHealthArticles() {
+      try {
+        const data = await request('/discover/articles');
+        healthArticles = data || [];
+        renderHealthArticles();
+      } catch (error) {
+        console.error('加载健康知识失败:', error);
+        healthArticles = [
+          { title: '减脂期间如何正确摄入碳水？', desc: '优质碳水 vs 精制碳水', icon: 'grain', color: 'orange' },
+        ];
+        renderHealthArticles();
+      }
+    }
+
+    async function loadDailyTip() {
+      try {
+        const data = await request('/discover/daily-tip');
+        dailyTip = data?.tip || '';
+        renderDailyTip();
+      } catch (error) {
+        console.error('加载每日一贴失败:', error);
+        dailyTip = '早餐摄入全天30%的热量，能有效提升上午的代谢率。';
+        renderDailyTip();
+      }
     }
 
     async function loadRecipes(mealType, page = 1) {
