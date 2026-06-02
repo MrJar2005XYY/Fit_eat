@@ -196,6 +196,26 @@
   <!-- 隐藏的文件输入 -->
   <input type="file" id="image-input" accept="image/png,image/jpeg,image/gif,image/webp" class="hidden" onchange="handleImageSelect(event)">
 
+  <!-- 评论弹窗 -->
+  <div id="comments-modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeComments()"></div>
+    <div class="absolute inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-lg md:w-full bg-white rounded-t-3xl md:rounded-2xl shadow-2xl max-h-[80vh] flex flex-col">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <h3 class="font-bold text-lg">评论</h3>
+        <button class="text-gray-500 hover:text-gray-700" onclick="closeComments()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div id="comments-list" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <p class="text-center text-gray-400 py-8">加载中...</p>
+      </div>
+      <div class="px-4 py-3 border-t border-gray-100 flex gap-2">
+        <input id="comment-input" type="text" placeholder="写评论..." class="flex-1 px-4 py-2.5 bg-gray-50 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+        <button onclick="submitComment()" class="px-5 py-2.5 bg-green-600 text-white rounded-full text-sm font-bold hover:bg-green-700 transition-colors">发送</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../js/api.js"></script>
   <script src="../js/common.js"></script>
   <script src="../js/components.js"></script>
@@ -293,7 +313,71 @@
       Utils.showToast('关注成功');
     }
 
-    function showComments(postId) { Utils.showToast('评论功能开发中...'); }
+    let currentPostId = null;
+
+    async function showComments(postId) {
+      currentPostId = postId;
+      document.getElementById('comments-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      await loadComments(postId);
+    }
+
+    function closeComments() {
+      document.getElementById('comments-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+      currentPostId = null;
+    }
+
+    async function loadComments(postId) {
+      const list = document.getElementById('comments-list');
+      list.innerHTML = '<p class="text-center text-gray-400 py-8">加载中...</p>';
+
+      try {
+        const comments = await API.community.getComments(postId);
+        if (comments.length === 0) {
+          list.innerHTML = '<p class="text-center text-gray-400 py-8">暂无评论，快来抢沙发！</p>';
+        } else {
+          list.innerHTML = comments.map(c => `
+            <div class="flex gap-3">
+              <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                <img src="${c.user.avatar}" alt="${c.user.name}" class="w-full h-full object-cover">
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-bold text-sm">${c.user.name}</span>
+                  <span class="text-xs text-gray-400">${c.time}</span>
+                </div>
+                <p class="text-sm text-gray-700">${c.content}</p>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('加载评论失败:', error);
+        list.innerHTML = '<p class="text-center text-red-400 py-8">加载失败，请重试</p>';
+      }
+    }
+
+    async function submitComment() {
+      const input = document.getElementById('comment-input');
+      const content = input.value.trim();
+      if (!content || !currentPostId) return;
+
+      try {
+        const result = await API.community.comment(currentPostId, content);
+        if (result.success) {
+          input.value = '';
+          await loadComments(currentPostId);
+          Utils.showToast('评论成功');
+        } else {
+          Utils.showToast(result.message || '评论失败');
+        }
+      } catch (error) {
+        console.error('评论失败:', error);
+        Utils.showToast('评论失败，请重试');
+      }
+    }
+
     function sharePost(postId) { Utils.showToast('分享功能开发中...'); }
     async function loadMorePosts() { Utils.showToast('加载中...'); }
 

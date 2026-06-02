@@ -90,6 +90,16 @@ def add_comment(post_id):
     return jsonify({'success': True, 'commentId': comment.id})
 
 
+@community_bp.route('/posts/<int:post_id>/comments', methods=['GET'])
+def get_comments(post_id):
+    page = request.args.get('page', 1, type=int)
+    comments = Comment.query.filter_by(post_id=post_id) \
+        .order_by(Comment.created_at.desc()) \
+        .paginate(page=page, per_page=20, error_out=False)
+
+    return jsonify([c.to_dict() for c in comments.items])
+
+
 @community_bp.route('/my-posts', methods=['GET'])
 def get_my_posts():
     user = get_current_user()

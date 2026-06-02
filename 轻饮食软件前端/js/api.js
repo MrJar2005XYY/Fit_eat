@@ -168,6 +168,10 @@ const API = {
       return request(`/community/posts/${postId}/comment`, { method: 'POST', body: JSON.stringify({ content }) });
     },
 
+    getComments: async (postId, page = 1) => {
+      return request(`/community/posts/${postId}/comments?page=${page}`);
+    },
+
     toggleFollow: async (userId) => {
       return request(`/community/follow/${userId}`, { method: 'POST' });
     },
