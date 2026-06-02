@@ -76,5 +76,10 @@ def get_favorites():
 
     favs = Favorite.query.filter_by(user_id=user_id).order_by(Favorite.created_at.desc()).all()
     food_ids = [f.food_id for f in favs]
-    foods = Food.query.filter(Food.id.in_(food_ids)).all() if food_ids else []
-    return jsonify([f.to_dict() for f in foods])
+    if not food_ids:
+        return jsonify([])
+
+    foods = Food.query.filter(Food.id.in_(food_ids)).all()
+    food_map = {f.id: f for f in foods}
+    ordered_foods = [food_map[fid] for fid in food_ids if fid in food_map]
+    return jsonify([f.to_dict() for f in ordered_foods])
