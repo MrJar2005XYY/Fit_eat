@@ -132,6 +132,7 @@ def today_summary():
 
     total_duration = sum(r.duration for r in records)
     total_calories = sum(r.calories for r in records)
+    target_duration = user.daily_exercise_duration or 30
     total_distance = sum(r.distance for r in records)
 
     return jsonify({
@@ -139,6 +140,8 @@ def today_summary():
         'calories': total_calories,
         'distance': round(total_distance, 2),
         'count': len(records),
+        'targetDuration': target_duration,
+        'progress': min(round(total_duration / target_duration * 100), 100) if target_duration > 0 else 0,
         'records': [r.to_dict() for r in records],
     })
 
@@ -156,6 +159,7 @@ def weekly_summary():
 
     days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
     result = []
+    week_exercise_days = 0
 
     for i in range(7):
         day_start = week_start + timedelta(days=i)
@@ -166,14 +170,25 @@ def weekly_summary():
             ExerciseRecord.recorded_at < day_end
         ).all()
 
+        day_count = len(records)
+        if day_count > 0:
+            week_exercise_days += 1
+
         result.append({
             'day': days[i],
             'duration': sum(r.duration for r in records),
             'calories': sum(r.calories for r in records),
-            'count': len(records),
+            'count': day_count,
         })
 
-    return jsonify(result)
+    weekly_goal = user.weekly_exercise_goal or 3
+
+    return jsonify({
+        'days': result,
+        'weekExerciseDays': week_exercise_days,
+        'weeklyGoal': weekly_goal,
+        'goalProgress': min(round(week_exercise_days / weekly_goal * 100), 100) if weekly_goal > 0 else 0,
+    })
 
 
 @exercise_bp.route('/monthly-summary', methods=['GET'])

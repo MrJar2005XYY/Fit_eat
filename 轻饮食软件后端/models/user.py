@@ -26,6 +26,11 @@ class User(UserMixin, db.Model):
 
     # 统计
     plan_days = db.Column(db.Integer, default=0)
+
+    # 运动目标
+    weekly_exercise_goal = db.Column(db.Integer, default=3)  # 每周运动次数目标
+    daily_exercise_duration = db.Column(db.Integer, default=30)  # 每日运动时长目标(分钟)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # 关系
@@ -57,6 +62,8 @@ class User(UserMixin, db.Model):
             'targetCalories': self.target_calories,
             'currentWeight': self.weight,
             'planDays': self.plan_days,
+            'weeklyExerciseGoal': self.weekly_exercise_goal,
+            'dailyExerciseDuration': self.daily_exercise_duration,
             'recordCount': self.diet_records.count(),
             'achievementCount': self.achievements.count(),
         }
