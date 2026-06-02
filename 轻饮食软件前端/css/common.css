@@ -576,3 +576,113 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* ========== 深色模式 ========== */
+[data-theme="dark"] body {
+  background-color: #1a1c1c;
+  color: #e2e2e2;
+}
+
+[data-theme="dark"] .bg-gray-50 {
+  background-color: #1a1c1c;
+}
+
+[data-theme="dark"] .bg-white {
+  background-color: #2d2d2d;
+}
+
+[data-theme="dark"] .text-gray-800,
+[data-theme="dark"] .text-gray-700 {
+  color: #e2e2e2;
+}
+
+[data-theme="dark"] .text-gray-500,
+[data-theme="dark"] .text-gray-400 {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .bg-gray-100 {
+  background-color: #3d3d3d;
+}
+
+[data-theme="dark"] .bg-gray-50 {
+  background-color: #2d2d2d;
+}
+
+[data-theme="dark"] .border-gray-100,
+[data-theme="dark"] .border-gray-200 {
+  border-color: #3d3d3d;
+}
+
+[data-theme="dark"] .card-shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .glass-effect {
+  background: rgba(45, 45, 45, 0.8);
+}
+
+[data-theme="dark"] .top-app-bar {
+  background-color: #1a1c1c;
+}
+
+[data-theme="dark"] .bottom-nav {
+  background-color: #2d2d2d;
+  border-color: #3d3d3d;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: #3d3d3d;
+  color: #e2e2e2;
+}
+
+[data-theme="dark"] .bg-green-50 {
+  background-color: #1a3a1a;
+}
+
+[data-theme="dark"] .bg-blue-50 {
+  background-color: #1a2a3a;
+}
+
+[data-theme="dark"] .bg-orange-50 {
+  background-color: #3a2a1a;
+}
+
+[data-theme="dark"] .bg-yellow-50 {
+  background-color: #3a3a1a;
+}
+
+[data-theme="dark"] .bg-purple-50 {
+  background-color: #2a1a3a;
+}
+
+/* 主题切换按钮 */
+.theme-toggle {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #006e1c;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 110, 28, 0.3);
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+}
+
+@media (min-width: 1024px) {
+  .theme-toggle {
+    bottom: 30px;
+  }
+}

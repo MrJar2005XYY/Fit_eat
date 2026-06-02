@@ -1200,5 +1200,55 @@ window.AvatarModal = AvatarModal;
 window.AccountSettingsModal = AccountSettingsModal;
 window.PAGES = PAGES;
 
+// ========== 主题切换 ==========
+const ThemeManager = {
+  init() {
+    // 从localStorage读取主题设置
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    this.applyTheme(savedTheme);
+
+    // 创建主题切换按钮
+    this.createToggleButton();
+  },
+
+  applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+
+    // 更新按钮图标
+    const btn = document.getElementById('theme-toggle-btn');
+    if (btn) {
+      const icon = btn.querySelector('.material-symbols-outlined');
+      icon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+    }
+  },
+
+  toggle() {
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    this.applyTheme(next);
+    Utils.showToast(next === 'dark' ? '已切换到深色模式' : '已切换到浅色模式');
+  },
+
+  createToggleButton() {
+    // 检查是否已存在
+    if (document.getElementById('theme-toggle-btn')) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'theme-toggle-btn';
+    btn.className = 'theme-toggle';
+    btn.onclick = () => this.toggle();
+    btn.innerHTML = '<span class="material-symbols-outlined">dark_mode</span>';
+    btn.title = '切换主题';
+    document.body.appendChild(btn);
+  }
+};
+
+// 导出ThemeManager
+window.ThemeManager = ThemeManager;
+
 // 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', initPage);
+document.addEventListener('DOMContentLoaded', () => {
+  initPage();
+  ThemeManager.init();
+});
