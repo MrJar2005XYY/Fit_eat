@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>轻食刻 - 运动记录</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#006e1c',
+            'primary-container': '#4caf50',
+            secondary: '#8b5000',
+            surface: '#f9f9f9',
+          },
+          borderRadius: { 'huge': '1.5rem' }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body class="bg-gray-50 pb-24 lg:pb-8">
+
+  <!-- 顶部导航栏 -->
+  <header class="top-app-bar">
+    <div class="flex justify-between items-center px-4 md:px-6 h-16 w-full max-w-7xl mx-auto">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+          <span class="material-symbols-outlined text-green-700 text-xl">restaurant</span>
+        </div>
+        <h1 class="font-bold text-xl text-green-700 tracking-tight">轻食刻</h1>
+        <nav class="hidden md:flex items-center gap-1 ml-6">
+          <a href="home.html" class="desktop-nav-link">首页</a>
+          <a href="discover.html" class="desktop-nav-link">发现</a>
+          <a href="record.html" class="desktop-nav-link">记录</a>
+          <a href="community.html" class="desktop-nav-link">社区</a>
+          <a href="profile.html" class="desktop-nav-link">我的</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+          <span class="material-symbols-outlined text-green-700">notifications</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要内容 -->
+  <main class="pt-20 px-4 md:px-6 max-w-7xl mx-auto">
+
+    <!-- 今日运动摘要 -->
+    <section class="mb-6">
+      <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl p-6 text-white">
+        <h2 class="text-lg font-bold mb-4">今日运动</h2>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="text-center">
+            <p class="text-3xl font-extrabold" id="today-duration">0</p>
+            <p class="text-sm opacity-80">分钟</p>
+          </div>
+          <div class="text-center">
+            <p class="text-3xl font-extrabold" id="today-calories">0</p>
+            <p class="text-sm opacity-80">千卡</p>
+          </div>
+          <div class="text-center">
+            <p class="text-3xl font-extrabold" id="today-distance">0</p>
+            <p class="text-sm opacity-80">公里</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 添加运动记录 -->
+    <section class="mb-6">
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-orange-500">add_circle</span>
+          添加运动
+        </h3>
+
+        <!-- 运动类型选择 -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-500 mb-2">运动类型</label>
+          <div class="grid grid-cols-4 md:grid-cols-6 gap-2" id="exercise-types">
+            <!-- 动态加载 -->
+          </div>
+        </div>
+
+        <!-- 运动详情 -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">时长（分钟）</label>
+            <input type="number" id="exercise-duration" placeholder="30" min="1" max="600"
+              class="w-full px-4 py-3 bg-gray-50 rounded-xl border border-transparent focus:border-orange-500 focus:ring-0 transition-colors">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">距离（公里）</label>
+            <input type="number" id="exercise-distance" placeholder="可选" min="0" step="0.1"
+              class="w-full px-4 py-3 bg-gray-50 rounded-xl border border-transparent focus:border-orange-500 focus:ring-0 transition-colors">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-500 mb-1">备注</label>
+          <input type="text" id="exercise-notes" placeholder="可选"
+            class="w-full px-4 py-3 bg-gray-50 rounded-xl border border-transparent focus:border-orange-500 focus:ring-0 transition-colors">
+        </div>
+
+        <!-- 预估消耗 -->
+        <div class="mb-4 p-3 bg-orange-50 rounded-xl">
+          <p class="text-sm text-orange-700">
+            预估消耗：<span id="estimated-calories" class="font-bold">0</span> 千卡
+          </p>
+        </div>
+
+        <button onclick="addExercise()" class="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 active:scale-95 transition-all flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined">check_circle</span>
+          记录运动
+        </button>
+      </div>
+    </section>
+
+    <!-- 本周运动统计 -->
+    <section class="mb-6">
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-green-500">bar_chart</span>
+          本周运动
+        </h3>
+        <div id="weekly-chart" class="h-48"></div>
+        <div class="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
+          <div class="text-center">
+            <p class="text-xl font-bold text-gray-800" id="week-duration">0</p>
+            <p class="text-xs text-gray-500">总时长(分钟)</p>
+          </div>
+          <div class="text-center">
+            <p class="text-xl font-bold text-gray-800" id="week-calories">0</p>
+            <p class="text-xs text-gray-500">总消耗(千卡)</p>
+          </div>
+          <div class="text-center">
+            <p class="text-xl font-bold text-gray-800" id="week-count">0</p>
+            <p class="text-xs text-gray-500">运动次数</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 最近运动记录 -->
+    <section class="mb-6">
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-blue-500">history</span>
+          最近记录
+        </h3>
+        <div id="recent-records" class="space-y-3">
+          <p class="text-center text-gray-400 py-8">暂无运动记录</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部导航栏 -->
+  <nav class="bottom-nav mobile-only">
+    <div class="flex justify-around items-center">
+      <a href="home.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">home</span>
+        <span class="text-[10px] font-medium mt-0.5">首页</span>
+      </a>
+      <a href="discover.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">explore</span>
+        <span class="text-[10px] font-medium mt-0.5">发现</span>
+      </a>
+      <a href="record.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">analytics</span>
+        <span class="text-[10px] font-medium mt-0.5">记录</span>
+      </a>
+      <a href="community.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">group</span>
+        <span class="text-[10px] font-medium mt-0.5">社区</span>
+      </a>
+      <a href="profile.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">person</span>
+        <span class="text-[10px] font-medium mt-0.5">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="toast">
+    <span class="material-symbols-outlined text-green-400 filled">check_circle</span>
+    <span id="toast-message">操作成功</span>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/components.js"></script>
+  <script>
+    let exerciseTypes = [];
+    let selectedTypeId = null;
+    let userWeight = 60;
+
+    async function initPage() {
+      try {
+        const [user, types, todaySummary, weeklySummary] = await Promise.all([
+          API.user.getProfile(),
+          API.exercise.getTypes(),
+          API.exercise.getTodaySummary(),
+          API.exercise.getWeeklySummary()
+        ]);
+
+        if (user) userWeight = user.weight || 60;
+        exerciseTypes = types || [];
+
+        renderExerciseTypes(exerciseTypes);
+        renderTodaySummary(todaySummary);
+        renderWeeklyChart(weeklySummary);
+        renderRecentRecords(todaySummary.records || []);
+
+        // 监听时长输入，更新预估消耗
+        document.getElementById('exercise-duration').addEventListener('input', updateEstimatedCalories);
+      } catch (error) {
+        console.error('加载数据失败:', error);
+      }
+    }
+
+    function renderExerciseTypes(types) {
+      const container = document.getElementById('exercise-types');
+      const categoryIcons = {
+        'cardio': 'local_fire_department',
+        'strength': 'fitness_center',
+        'flexibility': 'self_improvement',
+        'sports': 'sports',
+        'daily': 'directions_walk'
+      };
+
+      container.innerHTML = types.slice(0, 12).map(type => `
+        <button onclick="selectType(${type.id})" id="type-btn-${type.id}"
+          class="flex flex-col items-center gap-1 p-2 rounded-xl border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all text-center">
+          <span class="material-symbols-outlined text-orange-500">${type.icon || 'fitness_center'}</span>
+          <span class="text-[10px] font-medium text-gray-600">${type.name}</span>
+        </button>
+      `).join('');
+    }
+
+    function selectType(typeId) {
+      selectedTypeId = typeId;
+      // 更新选中状态
+      document.querySelectorAll('[id^="type-btn-"]').forEach(btn => {
+        btn.classList.remove('border-orange-500', 'bg-orange-50');
+        btn.classList.add('border-gray-200');
+      });
+      const selectedBtn = document.getElementById(`type-btn-${typeId}`);
+      if (selectedBtn) {
+        selectedBtn.classList.remove('border-gray-200');
+        selectedBtn.classList.add('border-orange-500', 'bg-orange-50');
+      }
+      updateEstimatedCalories();
+    }
+
+    function updateEstimatedCalories() {
+      const duration = parseInt(document.getElementById('exercise-duration').value) || 0;
+      const type = exerciseTypes.find(t => t.id === selectedTypeId);
+      const met = type ? type.met : 5.0;
+      const calories = Math.round(met * userWeight * (duration / 60));
+      document.getElementById('estimated-calories').textContent = calories;
+    }
+
+    function renderTodaySummary(summary) {
+      document.getElementById('today-duration').textContent = summary.duration || 0;
+      document.getElementById('today-calories').textContent = summary.calories || 0;
+      document.getElementById('today-distance').textContent = summary.distance || 0;
+    }
+
+    function renderWeeklyChart(data) {
+      const container = document.getElementById('weekly-chart');
+      if (!data || data.length === 0) return;
+
+      const maxDuration = Math.max(...data.map(d => d.duration), 1);
+      const chartHeight = 160;
+
+      // 更新周统计
+      const totalDuration = data.reduce((sum, d) => sum + d.duration, 0);
+      const totalCalories = data.reduce((sum, d) => sum + d.calories, 0);
+      const totalCount = data.reduce((sum, d) => sum + d.count, 0);
+      document.getElementById('week-duration').textContent = totalDuration;
+      document.getElementById('week-calories').textContent = totalCalories;
+      document.getElementById('week-count').textContent = totalCount;
+
+      const today = new Date().getDay();
+      const todayIndex = today === 0 ? 6 : today - 1;
+
+      container.innerHTML = `
+        <div style="position:relative;height:${chartHeight}px" class="px-2">
+          ${data.map((item, index) => {
+            const barHeight = Math.max(Math.round((item.duration / maxDuration) * (chartHeight - 30)), 4);
+            const left = (index / 7) * 100;
+            return `
+              <div style="position:absolute;bottom:0;left:${left}%;width:${100/7}%;display:flex;flex-direction:column;align-items:center" class="group">
+                <span class="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity font-medium mb-1">${item.duration}分钟</span>
+                <div class="w-8 md:w-10 rounded-t-lg transition-all group-hover:bg-orange-300 ${
+                  index === todayIndex ? 'bg-orange-500 shadow-md shadow-orange-200' : 'bg-gray-200'
+                }" style="height:${barHeight}px"></div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="flex justify-between px-2 mt-2">
+          ${data.map((item, index) => `
+            <span class="text-xs flex-1 text-center ${index === todayIndex ? 'text-orange-700 font-bold' : 'text-gray-500'}">${item.day}</span>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderRecentRecords(records) {
+      const container = document.getElementById('recent-records');
+      if (!records || records.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-400 py-8">暂无运动记录</p>';
+        return;
+      }
+
+      container.innerHTML = records.map(record => `
+        <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
+          <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-orange-600">${record.icon || 'fitness_center'}</span>
+          </div>
+          <div class="flex-1">
+            <p class="font-medium text-gray-800">${record.name}</p>
+            <p class="text-xs text-gray-500">${record.duration}分钟${record.distance > 0 ? ' · ' + record.distance + '公里' : ''}</p>
+          </div>
+          <div class="text-right">
+            <p class="font-bold text-orange-600">${record.calories}千卡</p>
+            <p class="text-xs text-gray-400">${record.time.split(' ')[1] || ''}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function addExercise() {
+      if (!selectedTypeId) {
+        Utils.showToast('请选择运动类型');
+        return;
+      }
+
+      const duration = parseInt(document.getElementById('exercise-duration').value);
+      if (!duration || duration <= 0) {
+        Utils.showToast('请输入运动时长');
+        return;
+      }
+
+      const distance = parseFloat(document.getElementById('exercise-distance').value) || 0;
+      const notes = document.getElementById('exercise-notes').value.trim();
+
+      try {
+        const result = await API.exercise.addRecord({
+          exerciseTypeId: selectedTypeId,
+          duration: duration,
+          distance: distance,
+          notes: notes
+        });
+
+        if (result.success) {
+          Utils.showToast(`已记录运动，消耗${result.calories}千卡`);
+          // 重置表单
+          document.getElementById('exercise-duration').value = '';
+          document.getElementById('exercise-distance').value = '';
+          document.getElementById('exercise-notes').value = '';
+          selectedTypeId = null;
+          document.getElementById('estimated-calories').textContent = '0';
+          document.querySelectorAll('[id^="type-btn-"]').forEach(btn => {
+            btn.classList.remove('border-orange-500', 'bg-orange-50');
+            btn.classList.add('border-gray-200');
+          });
+          // 刷新数据
+          const [todaySummary, weeklySummary] = await Promise.all([
+            API.exercise.getTodaySummary(),
+            API.exercise.getWeeklySummary()
+          ]);
+          renderTodaySummary(todaySummary);
+          renderWeeklyChart(weeklySummary);
+          renderRecentRecords(todaySummary.records || []);
+        } else {
+          Utils.showToast(result.message || '记录失败');
+        }
+      } catch (error) {
+        console.error('记录运动失败:', error);
+        Utils.showToast('记录失败，请重试');
+      }
+    }
+
+    if (!localStorage.getItem('token')) window.location.href = 'login.html';
+    document.addEventListener('DOMContentLoaded', initPage);
+  </script>
+
+</body>
+</html>

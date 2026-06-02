@@ -232,6 +232,41 @@ const API = {
     getUnlocked: async () => {
       return request('/achievement/unlocked');
     }
+  },
+
+  /**
+   * 运动相关接口
+   */
+  exercise: {
+    getTypes: async (category = '') => {
+      const params = category ? `?category=${category}` : '';
+      return request(`/exercise/types${params}`);
+    },
+
+    getRecords: async (date = '') => {
+      const params = date ? `?date=${date}` : '';
+      return request(`/exercise/records${params}`);
+    },
+
+    addRecord: async (data) => {
+      return request('/exercise/records', { method: 'POST', body: JSON.stringify(data) });
+    },
+
+    deleteRecord: async (id) => {
+      return request(`/exercise/records/${id}`, { method: 'DELETE' });
+    },
+
+    getTodaySummary: async () => {
+      return request('/exercise/today-summary');
+    },
+
+    getWeeklySummary: async () => {
+      return request('/exercise/weekly-summary');
+    },
+
+    getMonthlySummary: async () => {
+      return request('/exercise/monthly-summary');
+    }
   }
 };
 
