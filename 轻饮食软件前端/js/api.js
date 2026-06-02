@@ -132,6 +132,10 @@ const API = {
 
     toggleFavorite: async (id) => {
       return request(`/food/${id}/favorite`, { method: 'POST' });
+    },
+
+    getFavorites: async () => {
+      return request('/food/favorites');
     }
   },
 

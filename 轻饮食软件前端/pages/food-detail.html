@@ -300,6 +300,19 @@
               </div>
             `).join('');
           }
+
+          // 检查收藏状态
+          try {
+            const favorites = await API.food.getFavorites();
+            isFavorite = favorites.some(f => f.id === parseInt(foodId));
+            const icon = document.getElementById('fav-icon');
+            if (isFavorite) {
+              icon.style.fontVariationSettings = "'FILL' 1";
+              icon.classList.add('text-red-500');
+            }
+          } catch (e) {
+            console.log('检查收藏状态失败:', e);
+          }
         }
       } catch (error) {
         console.error('加载食物详情失败:', error);
@@ -322,19 +335,61 @@
       });
     }
 
-    function toggleFavorite(btn) {
-      const icon = btn.querySelector('#fav-icon');
-      const isFilled = icon.style.fontVariationSettings.includes("'FILL' 1");
-      if (isFilled) {
-        icon.style.fontVariationSettings = "'FILL' 0";
-        icon.classList.remove('text-red-500');
-      } else {
-        icon.style.fontVariationSettings = "'FILL' 1";
-        icon.classList.add('text-red-500');
+    let isFavorite = false;
+
+    async function toggleFavorite(btn) {
+      try {
+        const result = await API.food.toggleFavorite(foodId);
+        if (result.success) {
+          isFavorite = result.isFavorite;
+          const icon = document.getElementById('fav-icon');
+          if (isFavorite) {
+            icon.style.fontVariationSettings = "'FILL' 1";
+            icon.classList.add('text-red-500');
+            Utils.showToast('已收藏');
+          } else {
+            icon.style.fontVariationSettings = "'FILL' 0";
+            icon.classList.remove('text-red-500');
+            Utils.showToast('已取消收藏');
+          }
+        }
+      } catch (error) {
+        console.error('收藏操作失败:', error);
+        Utils.showToast('操作失败，请重试');
       }
     }
 
-    function addToRecord() { Utils.showToast('已添加至今日饮食记录'); }
+    async function addToRecord() {
+      try {
+        const food = await API.food.getDetail(foodId);
+        if (!food) {
+          Utils.showToast('食物信息加载失败');
+          return;
+        }
+
+        const result = await API.diet.addRecord({
+          foodId: food.id,
+          name: food.name,
+          meal: 'lunch', // 默认午餐，可根据时间自动判断
+          calories: food.calories,
+          protein: food.protein,
+          carbs: food.carbs,
+          fat: food.fat,
+          fiber: food.fiber,
+          image: food.image,
+          amount: 1.0
+        });
+
+        if (result.success) {
+          Utils.showToast('已添加至今日饮食记录');
+        } else {
+          Utils.showToast(result.message || '添加失败');
+        }
+      } catch (error) {
+        console.error('添加饮食记录失败:', error);
+        Utils.showToast('添加失败，请重试');
+      }
+    }
 
     window.addEventListener('scroll', () => {
       const header = document.getElementById('main-header');
