@@ -1,11 +1,20 @@
 from flask_admin.contrib.sqla import ModelView
-from flask_login import current_user
-from flask import redirect, url_for
+from flask import session, redirect, url_for
+from models.user import User
 
 
 class BaseAdminView(ModelView):
     def is_accessible(self):
-        return True
+        # 检查用户是否登录且是管理员
+        user_id = session.get('user_id')
+        if not user_id:
+            return False
+        user = User.query.get(user_id)
+        return user and user.account_id == 'admin'
+
+    def inaccessible_callback(self, name, **kwargs):
+        # 未授权时重定向到登录页
+        return redirect('/pages/login.html')
 
 
 class UserModelView(BaseAdminView):
