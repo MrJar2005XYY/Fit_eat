@@ -393,7 +393,46 @@
       }
     }
 
-    function sharePost(postId) { Utils.showToast('分享功能开发中...'); }
+    async function sharePost(postId) {
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      const shareData = {
+        title: '轻食刻 - 社区动态',
+        text: post.content.substring(0, 100) + (post.content.length > 100 ? '...' : ''),
+        url: window.location.origin + `/pages/community.html?post=${postId}`
+      };
+
+      // 使用 Web Share API（如果支持）
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          Utils.showToast('分享成功');
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            copyShareLink(shareData.url);
+          }
+        }
+      } else {
+        // 复制链接到剪贴板
+        copyShareLink(shareData.url);
+      }
+    }
+
+    function copyShareLink(url) {
+      navigator.clipboard.writeText(url).then(() => {
+        Utils.showToast('链接已复制到剪贴板');
+      }).catch(() => {
+        // 降级方案
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        Utils.showToast('链接已复制');
+      });
+    }
 
     async function loadMorePosts() {
       if (isLoading || !hasMore) return;

@@ -40,7 +40,7 @@
       <button class="w-10 h-10 flex items-center justify-center bg-white/40 backdrop-blur-xl rounded-full text-gray-800 hover:bg-white/60 transition-colors" onclick="toggleFavorite(this)">
         <span class="material-symbols-outlined" id="fav-icon">favorite</span>
       </button>
-      <button class="w-10 h-10 flex items-center justify-center bg-white/40 backdrop-blur-xl rounded-full text-gray-800 hover:bg-white/60 transition-colors">
+      <button class="w-10 h-10 flex items-center justify-center bg-white/40 backdrop-blur-xl rounded-full text-gray-800 hover:bg-white/60 transition-colors" onclick="shareFood()">
         <span class="material-symbols-outlined">share</span>
       </button>
     </div>
@@ -389,6 +389,42 @@
         console.error('添加饮食记录失败:', error);
         Utils.showToast('添加失败，请重试');
       }
+    }
+
+    async function shareFood() {
+      const foodName = document.getElementById('food-name').textContent;
+      const shareData = {
+        title: '轻食刻 - ' + foodName,
+        text: `推荐一道健康美食：${foodName}，快来轻食刻看看吧！`,
+        url: window.location.href
+      };
+
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          Utils.showToast('分享成功');
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            copyShareLink(shareData.url);
+          }
+        }
+      } else {
+        copyShareLink(shareData.url);
+      }
+    }
+
+    function copyShareLink(url) {
+      navigator.clipboard.writeText(url).then(() => {
+        Utils.showToast('链接已复制到剪贴板');
+      }).catch(() => {
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        Utils.showToast('链接已复制');
+      });
     }
 
     window.addEventListener('scroll', () => {
