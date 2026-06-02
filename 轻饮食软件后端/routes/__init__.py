@@ -8,6 +8,7 @@ from routes.upload import upload_bp
 from routes.exercise import exercise_bp
 from routes.meal_plan import meal_plan_bp
 from routes.health import health_bp
+from routes.notification import notification_bp
 
 
 def register_routes(app):
@@ -21,3 +22,4 @@ def register_routes(app):
     app.register_blueprint(exercise_bp, url_prefix='/api/exercise')
     app.register_blueprint(meal_plan_bp, url_prefix='/api/meal-plan')
     app.register_blueprint(health_bp, url_prefix='/api/health')
+    app.register_blueprint(notification_bp, url_prefix='/api/notification')
