@@ -281,10 +281,13 @@
         if (Array.isArray(records)) renderRecords(records);
       } catch (error) {
         console.error('加载数据失败:', error);
-        // 网络错误或认证失败时，清除无效 token 并跳转登录页
-        localStorage.removeItem('token');
-        localStorage.removeItem('accountId');
-        window.location.href = 'login.html';
+        // 只有在token无效时才跳转登录页
+        if (!localStorage.getItem('token')) {
+          window.location.href = 'login.html';
+        } else {
+          // 网络错误时显示提示，不跳转
+          Utils.showToast('数据加载失败，请刷新重试');
+        }
       }
     }
 
