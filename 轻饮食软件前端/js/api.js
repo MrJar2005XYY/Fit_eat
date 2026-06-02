@@ -267,6 +267,43 @@ const API = {
     getMonthlySummary: async () => {
       return request('/exercise/monthly-summary');
     }
+  },
+
+  /**
+   * 饮食计划相关接口
+   */
+  mealPlan: {
+    getPlans: async () => {
+      return request('/meal-plan/plans');
+    },
+
+    createPlan: async (data) => {
+      return request('/meal-plan/plans', { method: 'POST', body: JSON.stringify(data) });
+    },
+
+    getPlan: async (id) => {
+      return request(`/meal-plan/plans/${id}`);
+    },
+
+    deletePlan: async (id) => {
+      return request(`/meal-plan/plans/${id}`, { method: 'DELETE' });
+    },
+
+    addItem: async (planId, data) => {
+      return request(`/meal-plan/plans/${planId}/items`, { method: 'POST', body: JSON.stringify(data) });
+    },
+
+    deleteItem: async (itemId) => {
+      return request(`/meal-plan/items/${itemId}`, { method: 'DELETE' });
+    },
+
+    toggleComplete: async (itemId) => {
+      return request(`/meal-plan/items/${itemId}/complete`, { method: 'POST' });
+    },
+
+    getCurrent: async () => {
+      return request('/meal-plan/current');
+    }
   }
 };
 

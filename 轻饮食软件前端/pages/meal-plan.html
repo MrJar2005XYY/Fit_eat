@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>轻食刻 - 饮食计划</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#006e1c',
+            'primary-container': '#4caf50',
+            secondary: '#8b5000',
+            surface: '#f9f9f9',
+          },
+          borderRadius: { 'huge': '1.5rem' }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body class="bg-gray-50 pb-24 lg:pb-8">
+
+  <!-- 顶部导航栏 -->
+  <header class="top-app-bar">
+    <div class="flex justify-between items-center px-4 md:px-6 h-16 w-full max-w-7xl mx-auto">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+          <span class="material-symbols-outlined text-green-700 text-xl">restaurant</span>
+        </div>
+        <h1 class="font-bold text-xl text-green-700 tracking-tight">轻食刻</h1>
+        <nav class="hidden md:flex items-center gap-1 ml-6">
+          <a href="home.html" class="desktop-nav-link">首页</a>
+          <a href="discover.html" class="desktop-nav-link">发现</a>
+          <a href="record.html" class="desktop-nav-link">记录</a>
+          <a href="community.html" class="desktop-nav-link">社区</a>
+          <a href="profile.html" class="desktop-nav-link">我的</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+          <span class="material-symbols-outlined text-green-700">notifications</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要内容 -->
+  <main class="pt-20 px-4 md:px-6 max-w-7xl mx-auto">
+
+    <!-- 当前计划概览 -->
+    <section class="mb-6">
+      <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-3xl p-6 text-white">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold">本周饮食计划</h2>
+          <button onclick="showCreatePlan()" class="px-4 py-2 bg-white/20 rounded-xl text-sm font-medium hover:bg-white/30 transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">add</span>
+            新建计划
+          </button>
+        </div>
+        <div id="current-plan-info">
+          <p class="opacity-80">暂无进行中的计划</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 周计划表格 -->
+    <section class="mb-6">
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-gray-800 flex items-center gap-2">
+            <span class="material-symbols-outlined text-green-500">calendar_month</span>
+            每周安排
+          </h3>
+          <div class="flex gap-2">
+            <button onclick="addFoodToPlan()" class="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-colors flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">add</span>
+              添加食物
+            </button>
+          </div>
+        </div>
+
+        <!-- 日期选择 -->
+        <div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar" id="day-tabs">
+          <button onclick="selectDay(0)" class="day-tab active px-4 py-2 rounded-xl text-sm font-bold bg-green-600 text-white">周一</button>
+          <button onclick="selectDay(1)" class="day-tab px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600">周二</button>
+          <button onclick="selectDay(2)" class="day-tab px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600">周三</button>
+          <button onclick="selectDay(3)" class="day-tab px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600">周四</button>
+          <button onclick="selectDay(4)" class="day-tab px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600">周五</button>
+          <button onclick="selectDay(5)" class="day-tab px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600">周六</button>
+          <button onclick="selectDay(6)" class="day-tab px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600">周日</button>
+        </div>
+
+        <!-- 餐次列表 -->
+        <div id="meal-plan-items" class="space-y-4">
+          <p class="text-center text-gray-400 py-8">请先创建饮食计划</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 执行统计 -->
+    <section class="mb-6">
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-blue-500">insights</span>
+          执行统计
+        </h3>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="text-center p-4 bg-green-50 rounded-xl">
+            <p class="text-2xl font-bold text-green-700" id="stat-total">0</p>
+            <p class="text-xs text-gray-500">计划餐食</p>
+          </div>
+          <div class="text-center p-4 bg-blue-50 rounded-xl">
+            <p class="text-2xl font-bold text-blue-700" id="stat-completed">0</p>
+            <p class="text-xs text-gray-500">已完成</p>
+          </div>
+          <div class="text-center p-4 bg-orange-50 rounded-xl">
+            <p class="text-2xl font-bold text-orange-700" id="stat-rate">0%</p>
+            <p class="text-xs text-gray-500">完成率</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部导航栏 -->
+  <nav class="bottom-nav mobile-only">
+    <div class="flex justify-around items-center">
+      <a href="home.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">home</span>
+        <span class="text-[10px] font-medium mt-0.5">首页</span>
+      </a>
+      <a href="discover.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">explore</span>
+        <span class="text-[10px] font-medium mt-0.5">发现</span>
+      </a>
+      <a href="record.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">analytics</span>
+        <span class="text-[10px] font-medium mt-0.5">记录</span>
+      </a>
+      <a href="community.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">group</span>
+        <span class="text-[10px] font-medium mt-0.5">社区</span>
+      </a>
+      <a href="profile.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">person</span>
+        <span class="text-[10px] font-medium mt-0.5">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- 创建计划弹窗 -->
+  <div id="create-plan-modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeCreatePlan()"></div>
+    <div class="absolute inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-lg md:w-full bg-white rounded-t-3xl md:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <button class="text-gray-500 hover:text-gray-700" onclick="closeCreatePlan()">取消</button>
+        <h3 class="font-bold text-lg">新建饮食计划</h3>
+        <button onclick="createPlan()" class="text-green-600 font-bold">创建</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">计划名称</label>
+          <input type="text" id="plan-name" placeholder="如：本周减脂计划" class="w-full px-4 py-3 bg-gray-50 rounded-xl border border-transparent focus:border-green-500 focus:ring-0">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">开始日期</label>
+            <input type="date" id="plan-start" class="w-full px-4 py-3 bg-gray-50 rounded-xl border border-transparent focus:border-green-500 focus:ring-0">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">结束日期</label>
+            <input type="date" id="plan-end" class="w-full px-4 py-3 bg-gray-50 rounded-xl border border-transparent focus:border-green-500 focus:ring-0">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">每日目标热量</label>
+          <input type="number" id="plan-calories" placeholder="1800" class="w-full px-4 py-3 bg-gray-50 rounded-xl border border-transparent focus:border-green-500 focus:ring-0">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="toast">
+    <span class="material-symbols-outlined text-green-400 filled">check_circle</span>
+    <span id="toast-message">操作成功</span>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/components.js"></script>
+  <script>
+    let currentPlan = null;
+    let selectedDay = 0;
+    const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
+    const mealNames = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snack: '加餐' };
+    const mealIcons = { breakfast: 'wb_sunny', lunch: 'restaurant', dinner: 'dinner_dining', snack: 'cookie' };
+
+    async function initPage() {
+      try {
+        await API.user.getProfile();
+        await loadCurrentPlan();
+      } catch (error) {
+        console.error('加载数据失败:', error);
+      }
+    }
+
+    async function loadCurrentPlan() {
+      currentPlan = await API.mealPlan.getCurrent();
+      if (currentPlan) {
+        renderPlanInfo(currentPlan);
+        renderDayItems();
+        updateStats();
+      } else {
+        document.getElementById('current-plan-info').innerHTML = '<p class="opacity-80">暂无进行中的计划</p>';
+        document.getElementById('meal-plan-items').innerHTML = '<p class="text-center text-gray-400 py-8">请先创建饮食计划</p>';
+      }
+    }
+
+    function renderPlanInfo(plan) {
+      document.getElementById('current-plan-info').innerHTML = `
+        <p class="font-bold text-lg">${plan.name}</p>
+        <p class="text-sm opacity-80 mt-1">${plan.startDate} 至 ${plan.endDate}</p>
+        <div class="flex gap-4 mt-3">
+          <div class="bg-white/20 rounded-lg px-3 py-1.5">
+            <p class="text-xs opacity-70">目标热量</p>
+            <p class="font-bold">${plan.targetCalories}千卡</p>
+          </div>
+          <div class="bg-white/20 rounded-lg px-3 py-1.5">
+            <p class="text-xs opacity-70">计划餐食</p>
+            <p class="font-bold">${plan.itemCount}项</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectDay(day) {
+      selectedDay = day;
+      document.querySelectorAll('.day-tab').forEach((btn, i) => {
+        if (i === day) {
+          btn.classList.add('bg-green-600', 'text-white', 'font-bold');
+          btn.classList.remove('bg-gray-100', 'text-gray-600', 'font-medium');
+        } else {
+          btn.classList.remove('bg-green-600', 'text-white', 'font-bold');
+          btn.classList.add('bg-gray-100', 'text-gray-600', 'font-medium');
+        }
+      });
+      renderDayItems();
+    }
+
+    function renderDayItems() {
+      if (!currentPlan || !currentPlan.items) return;
+
+      const container = document.getElementById('meal-plan-items');
+      const dayItems = currentPlan.items.filter(item => item.dayOfWeek === selectedDay);
+
+      if (dayItems.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8">
+            <span class="material-symbols-outlined text-gray-300 text-5xl">restaurant</span>
+            <p class="text-gray-400 mt-2">这一天还没有安排</p>
+            <button onclick="addFoodToPlan()" class="mt-4 px-6 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-colors">
+              添加食物
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // 按餐次分组
+      const grouped = {};
+      mealTypes.forEach(type => grouped[type] = []);
+      dayItems.forEach(item => {
+        if (grouped[item.mealType]) {
+          grouped[item.mealType].push(item);
+        }
+      });
+
+      container.innerHTML = mealTypes.map(type => {
+        const items = grouped[type];
+        if (items.length === 0) return '';
+
+        return `
+          <div class="border border-gray-100 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="material-symbols-outlined text-green-600">${mealIcons[type]}</span>
+              <h4 class="font-bold text-gray-800">${mealNames[type]}</h4>
+              <span class="text-xs text-gray-400 ml-auto">${items.reduce((sum, i) => sum + i.calories, 0)}千卡</span>
+            </div>
+            <div class="space-y-2">
+              ${items.map(item => `
+                <div class="flex items-center gap-3 p-2 rounded-lg ${item.isCompleted ? 'bg-green-50' : 'bg-gray-50'}">
+                  <button onclick="toggleComplete(${item.id})" class="w-6 h-6 rounded-full border-2 ${item.isCompleted ? 'bg-green-500 border-green-500' : 'border-gray-300'} flex items-center justify-center transition-all">
+                    ${item.isCompleted ? '<span class="material-symbols-outlined text-white text-sm">check</span>' : ''}
+                  </button>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium ${item.isCompleted ? 'line-through text-gray-400' : 'text-gray-800'}">${item.name}</p>
+                    <p class="text-xs text-gray-400">${item.calories}千卡 · 蛋白质${item.protein}g</p>
+                  </div>
+                  <button onclick="deleteItem(${item.id})" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateStats() {
+      if (!currentPlan || !currentPlan.items) return;
+
+      const total = currentPlan.items.length;
+      const completed = currentPlan.items.filter(i => i.isCompleted).length;
+      const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-completed').textContent = completed;
+      document.getElementById('stat-rate').textContent = rate + '%';
+    }
+
+    async function toggleComplete(itemId) {
+      try {
+        const result = await API.mealPlan.toggleComplete(itemId);
+        if (result.success) {
+          // 更新本地数据
+          const item = currentPlan.items.find(i => i.id === itemId);
+          if (item) {
+            item.isCompleted = result.isCompleted;
+          }
+          renderDayItems();
+          updateStats();
+          Utils.showToast(result.isCompleted ? '已完成' : '已取消完成');
+        }
+      } catch (error) {
+        console.error('操作失败:', error);
+        Utils.showToast('操作失败');
+      }
+    }
+
+    async function deleteItem(itemId) {
+      if (!confirm('确定删除这个食物吗？')) return;
+
+      try {
+        const result = await API.mealPlan.deleteItem(itemId);
+        if (result.success) {
+          currentPlan.items = currentPlan.items.filter(i => i.id !== itemId);
+          renderDayItems();
+          updateStats();
+          Utils.showToast('已删除');
+        }
+      } catch (error) {
+        console.error('删除失败:', error);
+        Utils.showToast('删除失败');
+      }
+    }
+
+    function showCreatePlan() {
+      const today = new Date();
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - (today.getDay() === 0 ? 6 : today.getDay() - 1));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+
+      document.getElementById('plan-name').value = `饮食计划 ${monday.getMonth() + 1}/${monday.getDate()}`;
+      document.getElementById('plan-start').value = monday.toISOString().split('T')[0];
+      document.getElementById('plan-end').value = sunday.toISOString().split('T')[0];
+      document.getElementById('plan-calories').value = '1800';
+
+      document.getElementById('create-plan-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeCreatePlan() {
+      document.getElementById('create-plan-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    async function createPlan() {
+      const name = document.getElementById('plan-name').value.trim();
+      const startDate = document.getElementById('plan-start').value;
+      const endDate = document.getElementById('plan-end').value;
+      const targetCalories = parseInt(document.getElementById('plan-calories').value) || 1800;
+
+      if (!startDate || !endDate) {
+        Utils.showToast('请选择日期');
+        return;
+      }
+
+      try {
+        const result = await API.mealPlan.createPlan({
+          name: name || '饮食计划',
+          startDate: startDate,
+          endDate: endDate,
+          targetCalories: targetCalories
+        });
+
+        if (result.success) {
+          Utils.showToast('计划创建成功');
+          closeCreatePlan();
+          await loadCurrentPlan();
+        } else {
+          Utils.showToast(result.message || '创建失败');
+        }
+      } catch (error) {
+        console.error('创建计划失败:', error);
+        Utils.showToast('创建失败');
+      }
+    }
+
+    function addFoodToPlan() {
+      if (!currentPlan) {
+        Utils.showToast('请先创建饮食计划');
+        return;
+      }
+      // 跳转到食物选择页面
+      window.location.href = `discover.html?select=1&planId=${currentPlan.id}&day=${selectedDay}`;
+    }
+
+    if (!localStorage.getItem('token')) window.location.href = 'login.html';
+    document.addEventListener('DOMContentLoaded', initPage);
+  </script>
+
+</body>
+</html>
