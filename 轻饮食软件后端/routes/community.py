@@ -105,12 +105,39 @@ def add_comment(post_id):
 
 @community_bp.route('/posts/<int:post_id>/comments', methods=['GET'])
 def get_comments(post_id):
+    user = get_current_user()
+    user_id = user.id if user else None
+
     page = request.args.get('page', 1, type=int)
     comments = Comment.query.filter_by(post_id=post_id) \
         .order_by(Comment.created_at.desc()) \
         .paginate(page=page, per_page=20, error_out=False)
 
-    return jsonify([c.to_dict() for c in comments.items])
+    return jsonify([c.to_dict(current_user_id=user_id) for c in comments.items])
+
+
+@community_bp.route('/comments/<int:comment_id>/like', methods=['POST'])
+def toggle_comment_like(comment_id):
+    """评论点赞/取消点赞"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': '未登录'}), 401
+
+    comment = Comment.query.get(comment_id)
+    if not comment:
+        return jsonify({'success': False, 'message': '评论不存在'}), 404
+
+    from models.community import CommentLike
+    existing = CommentLike.query.filter_by(comment_id=comment_id, user_id=user.id).first()
+    if existing:
+        db.session.delete(existing)
+        db.session.commit()
+        return jsonify({'success': True, 'isLiked': False})
+    else:
+        like = CommentLike(comment_id=comment_id, user_id=user.id)
+        db.session.add(like)
+        db.session.commit()
+        return jsonify({'success': True, 'isLiked': True})
 
 
 @community_bp.route('/my-posts', methods=['GET'])

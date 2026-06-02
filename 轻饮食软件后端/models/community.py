@@ -75,8 +75,13 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', backref='comments')
+    comment_likes = db.relationship('CommentLike', backref='comment', lazy='dynamic', cascade='all, delete-orphan')
 
-    def to_dict(self):
+    def to_dict(self, current_user_id=None):
+        is_liked = False
+        if current_user_id:
+            is_liked = CommentLike.query.filter_by(comment_id=self.id, user_id=current_user_id).first() is not None
+
         return {
             'id': self.id,
             'postId': self.post_id,
@@ -86,8 +91,22 @@ class Comment(db.Model):
                 'avatar': self.user.avatar if self.user else ''
             },
             'content': self.content,
+            'likes': self.comment_likes.count(),
+            'isLiked': is_liked,
             'time': self.created_at.strftime('%Y-%m-%d %H:%M') if self.created_at else '',
         }
+
+
+class CommentLike(db.Model):
+    """评论点赞表"""
+    __tablename__ = 'comment_likes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comments.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('comment_id', 'user_id'),)
 
 
 class Like(db.Model):
