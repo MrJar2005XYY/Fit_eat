@@ -14,8 +14,13 @@ async function request(url, options = {}) {
 
   const res = await fetch(`${API_BASE_URL}${url}`, { ...options, headers, credentials: 'include' });
 
-  // 解析响应JSON
-  const data = await res.json();
+  // 解析响应JSON，处理非JSON响应
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    data = { success: false, message: `服务器错误 (${res.status})` };
+  }
 
   // 全局处理 401 未授权响应（排除登录和注册接口）
   if (res.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/register')) {
