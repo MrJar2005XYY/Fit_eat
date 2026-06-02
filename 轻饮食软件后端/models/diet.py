@@ -36,7 +36,7 @@ class DietRecord(db.Model):
             'image': self.image or (self.food.image if self.food else ''),
             'description': self.description,
             'amount': self.amount,
-            'time': self.recorded_at.strftime('%Y-%m-%d %H:%M'),
+            'time': self.recorded_at.strftime('%Y-%m-%d %H:%M') if self.recorded_at else '',
         }
 
     def __repr__(self):
