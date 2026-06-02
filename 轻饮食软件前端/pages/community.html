@@ -222,6 +222,9 @@
   <script>
     let currentCategory = 'all';
     let posts = [];
+    let currentPage = 1;
+    let isLoading = false;
+    let hasMore = true;
 
     async function initPage() {
       try {
@@ -235,8 +238,11 @@
     }
 
     async function loadPosts() {
+      currentPage = 1;
+      hasMore = true;
       posts = await API.community.getPosts(1, currentCategory);
       renderPosts(posts);
+      updateLoadMoreButton();
     }
 
     function renderPosts(postsData) {
@@ -388,7 +394,95 @@
     }
 
     function sharePost(postId) { Utils.showToast('分享功能开发中...'); }
-    async function loadMorePosts() { Utils.showToast('加载中...'); }
+
+    async function loadMorePosts() {
+      if (isLoading || !hasMore) return;
+
+      isLoading = true;
+      const btn = document.getElementById('load-more');
+      btn.textContent = '加载中...';
+
+      try {
+        currentPage++;
+        const newPosts = await API.community.getPosts(currentPage, currentCategory);
+
+        if (newPosts.length === 0) {
+          hasMore = false;
+          btn.textContent = '没有更多了';
+          return;
+        }
+
+        posts = [...posts, ...newPosts];
+
+        // 追加到容器
+        const container = document.getElementById('posts-container');
+        newPosts.forEach(post => {
+          container.insertAdjacentHTML('beforeend', renderPostCard(post));
+        });
+
+        updateLoadMoreButton();
+      } catch (error) {
+        console.error('加载更多失败:', error);
+        Utils.showToast('加载失败');
+        currentPage--;
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    function updateLoadMoreButton() {
+      const btn = document.getElementById('load-more');
+      if (hasMore) {
+        btn.textContent = '加载更多动态';
+      } else {
+        btn.textContent = '没有更多了';
+      }
+    }
+
+    function renderPostCard(post) {
+      return `
+        <article class="masonry-item bg-white rounded-2xl overflow-hidden card-shadow card-shadow-hover transition-all">
+          ${post.image ? `
+            <div class="aspect-[4/5] w-full bg-gray-100">
+              <img src="${post.image}" alt="" class="w-full h-full object-cover">
+            </div>
+          ` : ''}
+          <div class="p-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-100">
+                <img src="${post.user.avatar}" alt="${post.user.name}" class="w-full h-full object-cover">
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-bold text-sm truncate">${post.user.name}</p>
+                <p class="text-xs text-gray-400">${post.time}</p>
+              </div>
+              <button class="text-green-600 text-xs font-bold hover:text-green-700 flex-shrink-0" onclick="followUser(${post.user.id})">+ 关注</button>
+            </div>
+            ${post.food ? `
+              <div class="mb-3 p-2 bg-green-50 rounded-lg flex items-center gap-2">
+                <span class="material-symbols-outlined text-green-600">restaurant</span>
+                <span class="text-sm text-green-700 font-medium">${post.food.name}</span>
+                <span class="text-xs text-green-600">${post.food.calories}千卡</span>
+              </div>
+            ` : ''}
+            <p class="text-sm leading-relaxed text-gray-700 mb-3 line-clamp-4">${post.content}</p>
+            <div class="flex items-center gap-4 pt-2 border-t border-gray-50">
+              <button class="flex items-center gap-1 ${post.isLiked ? 'text-red-500' : 'text-gray-400'} hover:text-red-500 transition-colors" onclick="toggleLike(${post.id}, this)">
+                <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' ${post.isLiked ? 1 : 0}">favorite</span>
+                <span class="text-xs">${Utils.formatNumber(post.likes)}</span>
+              </button>
+              <button class="flex items-center gap-1 text-gray-400 hover:text-green-600 transition-colors" onclick="showComments(${post.id})">
+                <span class="material-symbols-outlined text-lg">chat_bubble</span>
+                <span class="text-xs">${post.comments}</span>
+              </button>
+              <button class="flex items-center gap-1 text-gray-400 hover:text-green-600 transition-colors ml-auto" onclick="sharePost(${post.id})">
+                <span class="material-symbols-outlined text-lg">share</span>
+              </button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
 
     // 发布动态相关变量
     let selectedImage = null;
