@@ -304,6 +304,34 @@ const API = {
     getCurrent: async () => {
       return request('/meal-plan/current');
     }
+  },
+
+  /**
+   * 健康数据相关接口
+   */
+  health: {
+    getRecords: async (type = '', limit = 30) => {
+      const params = new URLSearchParams();
+      if (type) params.append('type', type);
+      if (limit) params.append('limit', limit);
+      return request(`/health/records?${params}`);
+    },
+
+    addRecord: async (data) => {
+      return request('/health/records', { method: 'POST', body: JSON.stringify(data) });
+    },
+
+    deleteRecord: async (id) => {
+      return request(`/health/records/${id}`, { method: 'DELETE' });
+    },
+
+    getTrends: async (type = 'weight', days = 30) => {
+      return request(`/health/trends?type=${type}&days=${days}`);
+    },
+
+    getSummary: async () => {
+      return request('/health/summary');
+    }
   }
 };
 

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>轻食刻 - 健康数据</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#006e1c',
+            'primary-container': '#4caf50',
+            secondary: '#8b5000',
+            surface: '#f9f9f9',
+          },
+          borderRadius: { 'huge': '1.5rem' }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body class="bg-gray-50 pb-24 lg:pb-8">
+
+  <!-- 顶部导航栏 -->
+  <header class="top-app-bar">
+    <div class="flex justify-between items-center px-4 md:px-6 h-16 w-full max-w-7xl mx-auto">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+          <span class="material-symbols-outlined text-green-700 text-xl">restaurant</span>
+        </div>
+        <h1 class="font-bold text-xl text-green-700 tracking-tight">轻食刻</h1>
+        <nav class="hidden md:flex items-center gap-1 ml-6">
+          <a href="home.html" class="desktop-nav-link">首页</a>
+          <a href="discover.html" class="desktop-nav-link">发现</a>
+          <a href="record.html" class="desktop-nav-link">记录</a>
+          <a href="community.html" class="desktop-nav-link">社区</a>
+          <a href="profile.html" class="desktop-nav-link">我的</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+          <span class="material-symbols-outlined text-green-700">notifications</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要内容 -->
+  <main class="pt-20 px-4 md:px-6 max-w-7xl mx-auto">
+
+    <!-- 健康概览 -->
+    <section class="mb-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-4 card-shadow text-center">
+          <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-blue-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-blue-600">monitor_weight</span>
+          </div>
+          <p class="text-2xl font-bold text-gray-800" id="summary-weight">--</p>
+          <p class="text-xs text-gray-500">体重(kg)</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 card-shadow text-center">
+          <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-green-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-green-600">fitness_center</span>
+          </div>
+          <p class="text-2xl font-bold text-gray-800" id="summary-bmi">--</p>
+          <p class="text-xs text-gray-500">BMI</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 card-shadow text-center">
+          <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-orange-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-orange-600">oil_barrel</span>
+          </div>
+          <p class="text-2xl font-bold text-gray-800" id="summary-bodyfat">--</p>
+          <p class="text-xs text-gray-500">体脂(%)</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 card-shadow text-center">
+          <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-purple-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-purple-600">straighten</span>
+          </div>
+          <p class="text-2xl font-bold text-gray-800" id="summary-waist">--</p>
+          <p class="text-xs text-gray-500">腰围(cm)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 记录健康数据 -->
+    <section class="mb-6">
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-green-500">add_circle</span>
+          记录数据
+        </h3>
+
+        <!-- 数据类型选择 -->
+        <div class="flex gap-2 mb-4 overflow-x-auto hide-scrollbar">
+          <button onclick="selectType('weight')" class="type-btn active px-4 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white whitespace-nowrap">体重</button>
+          <button onclick="selectType('body_fat')" class="type-btn px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600 whitespace-nowrap">体脂</button>
+          <button onclick="selectType('blood_sugar')" class="type-btn px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600 whitespace-nowrap">血糖</button>
+          <button onclick="selectType('blood_pressure')" class="type-btn px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600 whitespace-nowrap">血压</button>
+          <button onclick="selectType('waist')" class="type-btn px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600 whitespace-nowrap">腰围</button>
+          <button onclick="selectType('hip')" class="type-btn px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-600 whitespace-nowrap">臀围</button>
+        </div>
+
+        <!-- 输入区域 -->
+        <div id="input-area" class="mb-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-500 mb-1" id="value-label">体重(kg)</label>
+              <input type="number" id="health-value" placeholder="70" step="0.1"
+                class="w-full px-4 py-3 bg-gray-50 rounded-xl border border-transparent focus:border-green-500 focus:ring-0 transition-colors">
+            </div>
+            <div id="value2-container" class="hidden">
+              <label class="block text-sm font-medium text-gray-500 mb-1" id="value2-label">舒张压</label>
+              <input type="number" id="health-value2" placeholder="80"
+                class="w-full px-4 py-3 bg-gray-50 rounded-xl border border-transparent focus:border-green-500 focus:ring-0 transition-colors">
+            </div>
+          </div>
+          <div class="mt-3">
+            <input type="text" id="health-notes" placeholder="备注（可选）"
+              class="w-full px-4 py-3 bg-gray-50 rounded-xl border border-transparent focus:border-green-500 focus:ring-0 transition-colors">
+          </div>
+        </div>
+
+        <button onclick="addHealthRecord()" class="w-full py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 active:scale-95 transition-all flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined">check_circle</span>
+          记录
+        </button>
+      </div>
+    </section>
+
+    <!-- 数据趋势 -->
+    <section class="mb-6">
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-gray-800 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-500">trending_up</span>
+            数据趋势
+          </h3>
+          <select id="trend-type" onchange="loadTrends()" class="px-3 py-1.5 bg-gray-50 rounded-lg text-sm border-none focus:ring-2 focus:ring-green-500">
+            <option value="weight">体重</option>
+            <option value="body_fat">体脂</option>
+            <option value="blood_sugar">血糖</option>
+            <option value="waist">腰围</option>
+          </select>
+        </div>
+        <div id="trend-chart" class="h-48"></div>
+        <div class="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
+          <div class="text-center">
+            <p class="text-lg font-bold text-gray-800" id="trend-min">--</p>
+            <p class="text-xs text-gray-500">最低</p>
+          </div>
+          <div class="text-center">
+            <p class="text-lg font-bold text-gray-800" id="trend-avg">--</p>
+            <p class="text-xs text-gray-500">平均</p>
+          </div>
+          <div class="text-center">
+            <p class="text-lg font-bold text-gray-800" id="trend-max">--</p>
+            <p class="text-xs text-gray-500">最高</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 最近记录 -->
+    <section class="mb-6">
+      <div class="bg-white rounded-3xl p-6 card-shadow">
+        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-gray-500">history</span>
+          最近记录
+        </h3>
+        <div id="recent-records" class="space-y-3">
+          <p class="text-center text-gray-400 py-8">暂无记录</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部导航栏 -->
+  <nav class="bottom-nav mobile-only">
+    <div class="flex justify-around items-center">
+      <a href="home.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">home</span>
+        <span class="text-[10px] font-medium mt-0.5">首页</span>
+      </a>
+      <a href="discover.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">explore</span>
+        <span class="text-[10px] font-medium mt-0.5">发现</span>
+      </a>
+      <a href="record.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">analytics</span>
+        <span class="text-[10px] font-medium mt-0.5">记录</span>
+      </a>
+      <a href="community.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">group</span>
+        <span class="text-[10px] font-medium mt-0.5">社区</span>
+      </a>
+      <a href="profile.html" class="flex flex-col items-center justify-center px-3 py-1 rounded-2xl text-gray-500 hover:bg-gray-50">
+        <span class="material-symbols-outlined">person</span>
+        <span class="text-[10px] font-medium mt-0.5">我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="toast">
+    <span class="material-symbols-outlined text-green-400 filled">check_circle</span>
+    <span id="toast-message">操作成功</span>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/components.js"></script>
+  <script>
+    let selectedType = 'weight';
+
+    const typeConfig = {
+      weight: { label: '体重(kg)', placeholder: '70', hasValue2: false },
+      body_fat: { label: '体脂率(%)', placeholder: '20', hasValue2: false },
+      blood_sugar: { label: '血糖(mmol/L)', placeholder: '5.5', hasValue2: false },
+      blood_pressure: { label: '收缩压(mmHg)', placeholder: '120', hasValue2: true, value2Label: '舒张压', value2Placeholder: '80' },
+      waist: { label: '腰围(cm)', placeholder: '75', hasValue2: false },
+      hip: { label: '臀围(cm)', placeholder: '95', hasValue2: false },
+      arm: { label: '臂围(cm)', placeholder: '30', hasValue2: false },
+    };
+
+    async function initPage() {
+      try {
+        await API.user.getProfile();
+        await Promise.all([loadSummary(), loadTrends(), loadRecentRecords()]);
+      } catch (error) {
+        console.error('加载数据失败:', error);
+      }
+    }
+
+    async function loadSummary() {
+      try {
+        const summary = await API.health.getSummary();
+        if (summary) {
+          const latest = summary.latest || {};
+          document.getElementById('summary-weight').textContent = latest.weight ? latest.weight.value : '--';
+          document.getElementById('summary-bmi').textContent = summary.bmi || '--';
+          document.getElementById('summary-bodyfat').textContent = latest.body_fat ? latest.body_fat.value : '--';
+          document.getElementById('summary-waist').textContent = latest.waist ? latest.waist.value : '--';
+        }
+      } catch (error) {
+        console.error('加载摘要失败:', error);
+      }
+    }
+
+    function selectType(type) {
+      selectedType = type;
+      const config = typeConfig[type];
+
+      // 更新按钮状态
+      document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white', 'font-bold', 'active');
+        btn.classList.add('bg-gray-100', 'text-gray-600', 'font-medium');
+      });
+      event.target.classList.remove('bg-gray-100', 'text-gray-600', 'font-medium');
+      event.target.classList.add('bg-blue-600', 'text-white', 'font-bold', 'active');
+
+      // 更新输入区域
+      document.getElementById('value-label').textContent = config.label;
+      document.getElementById('health-value').placeholder = config.placeholder;
+
+      if (config.hasValue2) {
+        document.getElementById('value2-container').classList.remove('hidden');
+        document.getElementById('value2-label').textContent = config.value2Label;
+        document.getElementById('health-value2').placeholder = config.value2Placeholder;
+      } else {
+        document.getElementById('value2-container').classList.add('hidden');
+      }
+    }
+
+    async function addHealthRecord() {
+      const value = parseFloat(document.getElementById('health-value').value);
+      if (!value || value <= 0) {
+        Utils.showToast('请输入有效数值');
+        return;
+      }
+
+      const value2 = parseFloat(document.getElementById('health-value2').value) || 0;
+      const notes = document.getElementById('health-notes').value.trim();
+
+      try {
+        const result = await API.health.addRecord({
+          type: selectedType,
+          value: value,
+          value2: value2,
+          notes: notes
+        });
+
+        if (result.success) {
+          Utils.showToast('记录成功');
+          document.getElementById('health-value').value = '';
+          document.getElementById('health-value2').value = '';
+          document.getElementById('health-notes').value = '';
+          await Promise.all([loadSummary(), loadTrends(), loadRecentRecords()]);
+        } else {
+          Utils.showToast(result.message || '记录失败');
+        }
+      } catch (error) {
+        console.error('记录失败:', error);
+        Utils.showToast('记录失败');
+      }
+    }
+
+    async function loadTrends() {
+      const type = document.getElementById('trend-type').value;
+      try {
+        const trends = await API.health.getTrends(type, 30);
+        renderTrendChart(trends);
+        document.getElementById('trend-min').textContent = trends.min || '--';
+        document.getElementById('trend-avg').textContent = trends.avg || '--';
+        document.getElementById('trend-max').textContent = trends.max || '--';
+      } catch (error) {
+        console.error('加载趋势失败:', error);
+      }
+    }
+
+    function renderTrendChart(trends) {
+      const container = document.getElementById('trend-chart');
+      const records = trends.records || [];
+
+      if (records.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-400 py-8">暂无数据</p>';
+        return;
+      }
+
+      const values = records.map(r => r.value);
+      const minVal = Math.min(...values);
+      const maxVal = Math.max(...values);
+      const range = maxVal - minVal || 1;
+      const chartHeight = 160;
+
+      container.innerHTML = `
+        <div style="position:relative;height:${chartHeight}px" class="px-2">
+          ${records.map((record, index) => {
+            const x = (index / (records.length - 1 || 1)) * 100;
+            const y = chartHeight - ((record.value - minVal) / range) * (chartHeight - 20) - 10;
+            return `
+              <div style="position:absolute;left:${x}%;top:${y}px;transform:translateX(-50%)" class="group">
+                <div class="w-3 h-3 rounded-full bg-blue-500 group-hover:scale-150 transition-transform cursor-pointer"></div>
+                <div class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap">
+                  ${record.value}${record.unit} ${record.date}
+                </div>
+              </div>
+            `;
+          }).join('')}
+          <svg class="absolute inset-0 w-full h-full" style="pointer-events:none">
+            <polyline points="${records.map((r, i) => {
+              const x = (i / (records.length - 1 || 1)) * 100;
+              const y = chartHeight - ((r.value - minVal) / range) * (chartHeight - 20) - 10;
+              return `${x}%,${y}`;
+            }).join(' ')}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="flex justify-between px-2 mt-2">
+          <span class="text-xs text-gray-400">${records[0]?.date || ''}</span>
+          <span class="text-xs text-gray-400">${records[records.length - 1]?.date || ''}</span>
+        </div>
+      `;
+    }
+
+    async function loadRecentRecords() {
+      try {
+        const records = await API.health.getRecords('', 10);
+        const container = document.getElementById('recent-records');
+
+        if (!records || records.length === 0) {
+          container.innerHTML = '<p class="text-center text-gray-400 py-8">暂无记录</p>';
+          return;
+        }
+
+        const typeNames = {
+          weight: '体重', body_fat: '体脂', blood_sugar: '血糖',
+          blood_pressure: '血压', waist: '腰围', hip: '臀围', arm: '臂围'
+        };
+        const typeIcons = {
+          weight: 'monitor_weight', body_fat: 'fitness_center', blood_sugar: 'water_drop',
+          blood_pressure: 'favorite', waist: 'straighten', hip: 'straighten', arm: 'fitness_center'
+        };
+
+        container.innerHTML = records.map(record => `
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <span class="material-symbols-outlined text-blue-600">${typeIcons[record.type] || 'health_and_safety'}</span>
+            </div>
+            <div class="flex-1">
+              <p class="font-medium text-gray-800">${typeNames[record.type] || record.type}</p>
+              <p class="text-xs text-gray-500">${record.time}</p>
+            </div>
+            <div class="text-right">
+              <p class="font-bold text-gray-800">${record.value}${record.unit}</p>
+              ${record.value2 > 0 ? `<p class="text-xs text-gray-500">/${record.value2}</p>` : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('加载记录失败:', error);
+      }
+    }
+
+    if (!localStorage.getItem('token')) window.location.href = 'login.html';
+    document.addEventListener('DOMContentLoaded', initPage);
+  </script>
+
+</body>
+</html>
