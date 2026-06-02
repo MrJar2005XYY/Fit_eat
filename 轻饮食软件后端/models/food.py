@@ -1,3 +1,4 @@
+import json
 from models import db
 
 
@@ -22,7 +23,16 @@ class Food(db.Model):
     meal_type = db.Column(db.String(20), default='')  # breakfast/lunch/dinner/snack
 
     def to_dict(self):
-        import json
+        try:
+            ingredients = json.loads(self.ingredients) if self.ingredients else []
+        except (json.JSONDecodeError, TypeError):
+            ingredients = []
+
+        try:
+            steps = json.loads(self.steps) if self.steps else []
+        except (json.JSONDecodeError, TypeError):
+            steps = []
+
         return {
             'id': self.id,
             'name': self.name,
@@ -33,9 +43,9 @@ class Food(db.Model):
             'carbs': self.carbs,
             'fat': self.fat,
             'fiber': self.fiber,
-            'tags': [t.strip() for t in self.tags.split(',') if t.strip()],
-            'ingredients': json.loads(self.ingredients) if self.ingredients else [],
-            'steps': json.loads(self.steps) if self.steps else [],
+            'tags': [t.strip() for t in (self.tags or '').split(',') if t.strip()],
+            'ingredients': ingredients,
+            'steps': steps,
             'benefits': self.benefits,
             'prepTime': self.prep_time,
             'difficulty': self.difficulty,
