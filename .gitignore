@@ -29,3 +29,9 @@ desktop.ini
 
 # Claude Code 本地配置
 .claude/
+
+# PPT和答辩相关
+*.pptx
+*.ppt
+PPT制作方案.md
+generate_ppt.py
