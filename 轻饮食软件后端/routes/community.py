@@ -149,6 +149,10 @@ def toggle_follow(user_id):
     if not user:
         return jsonify({'success': False, 'message': '未登录'}), 401
 
+    target_user = User.query.get(user_id)
+    if not target_user:
+        return jsonify({'success': False, 'message': '用户不存在'}), 404
+
     if user.id == user_id:
         return jsonify({'success': False, 'message': '不能关注自己'}), 400
 
