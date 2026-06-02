@@ -295,3 +295,77 @@ def nutrition_radar():
         'vitamins': vitamins_pct,
         'minerals': minerals_pct
     })
+
+
+@diet_bp.route('/suggest', methods=['GET'])
+def suggest_meals():
+    """智能餐食搭配推荐"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': '未登录'}), 401
+
+    meal_type = request.args.get('meal', '')
+    if not meal_type:
+        # 根据当前时间判断餐次
+        hour = datetime.utcnow().hour
+        if hour < 10:
+            meal_type = 'breakfast'
+        elif hour < 14:
+            meal_type = 'lunch'
+        elif hour < 17:
+            meal_type = 'snack'
+        else:
+            meal_type = 'dinner'
+
+    # 获取今日已摄入的营养
+    start, end = today_range()
+    records = DietRecord.query.filter(
+        DietRecord.user_id == user.id,
+        DietRecord.recorded_at >= start,
+        DietRecord.recorded_at < end
+    ).all()
+
+    consumed_calories = sum(r.calories for r in records)
+    consumed_protein = sum(r.protein for r in records)
+    consumed_carbs = sum(r.carbs for r in records)
+    consumed_fat = sum(r.fat for r in records)
+
+    target = user.target_calories or 1800
+    remaining_calories = max(target - consumed_calories, 0)
+
+    # 根据剩余营养需求推荐食物
+    from models.food import Food
+
+    # 计算该餐次建议热量占比
+    meal_ratio = {'breakfast': 0.3, 'lunch': 0.35, 'snack': 0.1, 'dinner': 0.25}
+    suggested_calories = int(remaining_calories * meal_ratio.get(meal_type, 0.3))
+
+    # 推荐食物：热量在建议范围内的该餐次食物
+    min_cal = max(suggested_calories - 200, 50)
+    max_cal = suggested_calories + 200
+
+    foods = Food.query.filter(
+        Food.meal_type == meal_type,
+        Food.calories.between(min_cal, max_cal)
+    ).limit(6).all()
+
+    # 如果该餐次食物不够，补充其他餐次的食物
+    if len(foods) < 3:
+        other_foods = Food.query.filter(
+            Food.meal_type != meal_type,
+            Food.calories.between(min_cal, max_cal)
+        ).limit(3).all()
+        foods.extend(other_foods)
+
+    return jsonify({
+        'mealType': meal_type,
+        'suggestedCalories': suggested_calories,
+        'remainingCalories': remaining_calories,
+        'consumed': {
+            'calories': consumed_calories,
+            'protein': round(consumed_protein, 1),
+            'carbs': round(consumed_carbs, 1),
+            'fat': round(consumed_fat, 1),
+        },
+        'suggestions': [f.to_dict() for f in foods[:6]]
+    })
