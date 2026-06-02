@@ -5,6 +5,7 @@ from models import db
 from models.user import User
 from models.food import Food
 from models.diet import DietRecord, WaterRecord
+from models.exercise import ExerciseRecord
 
 diet_bp = Blueprint('diet', __name__)
 
@@ -30,18 +31,29 @@ def today_calories():
         return jsonify({'success': False, 'message': '未登录'}), 401
 
     start, end = today_range()
+
+    # 计算饮食摄入
     consumed = db.session.query(func.coalesce(func.sum(DietRecord.calories), 0)).filter(
         DietRecord.user_id == user.id,
         DietRecord.recorded_at >= start,
         DietRecord.recorded_at < end
     ).scalar()
 
+    # 计算运动消耗
+    burned = db.session.query(func.coalesce(func.sum(ExerciseRecord.calories), 0)).filter(
+        ExerciseRecord.user_id == user.id,
+        ExerciseRecord.recorded_at >= start,
+        ExerciseRecord.recorded_at < end
+    ).scalar()
+
     target = user.target_calories or 1800
+    remaining = max(target - int(consumed) + int(burned), 0)
+
     return jsonify({
         'target': target,
         'consumed': int(consumed),
-        'burned': 0,
-        'remaining': max(target - int(consumed), 0)
+        'burned': int(burned),
+        'remaining': remaining
     })
 
 
