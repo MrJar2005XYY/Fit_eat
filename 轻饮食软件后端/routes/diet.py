@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify, session
 from sqlalchemy import func
 from models import db
 from models.user import User
+from models.food import Food
 from models.diet import DietRecord, WaterRecord
 
 diet_bp = Blueprint('diet', __name__)
@@ -90,16 +91,38 @@ def add_record():
         return jsonify({'success': False, 'message': '未登录'}), 401
 
     data = request.get_json()
+    amount = data.get('amount', 1.0)
+
+    # 如果有food_id，从Food表获取营养数据
+    calories = data.get('calories', 0)
+    protein = data.get('protein', 0)
+    carbs = data.get('carbs', 0)
+    fat = data.get('fat', 0)
+    fiber = data.get('fiber', 0)
+
+    food_id = data.get('foodId')
+    if food_id:
+        food = Food.query.get(food_id)
+        if food:
+            calories = int(food.calories * amount)
+            protein = round(food.protein * amount, 1)
+            carbs = round(food.carbs * amount, 1)
+            fat = round(food.fat * amount, 1)
+            fiber = round(food.fiber * amount, 1)
+
     record = DietRecord(
         user_id=user.id,
-        food_id=data.get('foodId'),
+        food_id=food_id,
         food_name=data.get('name', ''),
         meal_type=data.get('meal', ''),
-        calories=data.get('calories', 0),
-        protein=data.get('protein', 0),
+        calories=calories,
+        protein=protein,
+        carbs=carbs,
+        fat=fat,
+        fiber=fiber,
         image=data.get('image', ''),
         description=data.get('description', ''),
-        amount=data.get('amount', 1.0)
+        amount=amount
     )
     db.session.add(record)
     db.session.commit()
@@ -135,10 +158,12 @@ def get_macros():
     ).all()
 
     protein = sum(r.protein for r in records)
+    carbs = sum(r.carbs for r in records)
+    fat = sum(r.fat for r in records)
     return jsonify({
         'protein': {'current': round(protein), 'target': 80},
-        'carbs': {'current': 0, 'target': 200},
-        'fat': {'current': 0, 'target': 60}
+        'carbs': {'current': round(carbs), 'target': 200},
+        'fat': {'current': round(fat), 'target': 60}
     })
 
 
@@ -224,13 +249,30 @@ def nutrition_radar():
 
     total_calories = sum(r.calories for r in records)
     total_protein = sum(r.protein for r in records)
+    total_carbs = sum(r.carbs for r in records)
+    total_fat = sum(r.fat for r in records)
+    total_fiber = sum(r.fiber for r in records)
+
     target = user.target_calories or 1800
 
+    # 基于推荐摄入量计算各维度百分比
+    # 蛋白质推荐: 80g, 碳水推荐: 200g, 脂肪推荐: 60g, 纤维推荐: 25g
+    # 维生素和矿物质基于食物多样性估算
+    energy_pct = min(round(total_calories / target * 100), 100) if target else 0
+    protein_pct = min(round(total_protein / 80 * 100), 100)
+    fat_pct = min(round(total_fat / 60 * 100), 100)
+    fiber_pct = min(round(total_fiber / 25 * 100), 100)
+
+    # 维生素和矿物质基于食物种类数量估算
+    food_types = len(set(r.food_id for r in records if r.food_id))
+    vitamins_pct = min(food_types * 15, 100)  # 每种食物约15%贡献
+    minerals_pct = min(food_types * 12, 100)  # 每种食物约12%贡献
+
     return jsonify({
-        'energy': min(round(total_calories / target * 100), 100) if target else 0,
-        'protein': min(round(total_protein / 80 * 100), 100),
-        'fat': 72,
-        'fiber': 65,
-        'vitamins': 80,
-        'minerals': 75
+        'energy': energy_pct,
+        'protein': protein_pct,
+        'fat': fat_pct,
+        'fiber': fiber_pct,
+        'vitamins': vitamins_pct,
+        'minerals': minerals_pct
     })

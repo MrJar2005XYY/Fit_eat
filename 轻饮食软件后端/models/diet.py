@@ -12,6 +12,9 @@ class DietRecord(db.Model):
     meal_type = db.Column(db.String(20), default='')  # breakfast/lunch/dinner/snack
     calories = db.Column(db.Integer, default=0)
     protein = db.Column(db.Float, default=0)
+    carbs = db.Column(db.Float, default=0)
+    fat = db.Column(db.Float, default=0)
+    fiber = db.Column(db.Float, default=0)
     image = db.Column(db.String(500), default='')
     description = db.Column(db.String(200), default='')
     amount = db.Column(db.Float, default=1.0)
@@ -27,6 +30,9 @@ class DietRecord(db.Model):
             'meal': self.meal_type,
             'calories': self.calories,
             'protein': self.protein,
+            'carbs': self.carbs,
+            'fat': self.fat,
+            'fiber': self.fiber,
             'image': self.image or (self.food.image if self.food else ''),
             'description': self.description,
             'amount': self.amount,
