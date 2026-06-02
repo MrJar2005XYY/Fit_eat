@@ -18,10 +18,20 @@ def get_posts():
     user = get_current_user()
     page = request.args.get('page', 1, type=int)
     category = request.args.get('category', 'all')
+    keyword = request.args.get('q', '').strip()
 
     query = CommunityPost.query
     if category and category != 'all':
         query = query.filter_by(category=category)
+
+    # 搜索功能
+    if keyword:
+        query = query.filter(
+            db.or_(
+                CommunityPost.content.contains(keyword),
+                CommunityPost.user.has(User.username.contains(keyword))
+            )
+        )
 
     posts = query.order_by(CommunityPost.created_at.desc()).paginate(
         page=page, per_page=10, error_out=False
