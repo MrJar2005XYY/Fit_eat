@@ -14,18 +14,20 @@ async function request(url, options = {}) {
 
   const res = await fetch(`${API_BASE_URL}${url}`, { ...options, headers, credentials: 'include' });
 
-  // 全局处理 401 未授权响应，清除无效 token 并跳转登录页
-  if (res.status === 401) {
+  // 解析响应JSON
+  const data = await res.json();
+
+  // 全局处理 401 未授权响应（排除登录和注册接口）
+  if (res.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/register')) {
     localStorage.removeItem('token');
     localStorage.removeItem('accountId');
     const currentPage = window.location.pathname.split('/').pop();
     if (currentPage !== 'login.html' && currentPage !== 'register.html') {
       window.location.href = 'login.html';
     }
-    return { success: false, message: '未登录或登录已过期' };
   }
 
-  return res.json();
+  return data;
 }
 
 const API = {
