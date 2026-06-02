@@ -25,8 +25,8 @@ class CommunityPost(db.Model):
             'id': self.id,
             'user': {
                 'id': self.user_id,
-                'name': self.user.username,
-                'avatar': self.user.avatar,
+                'name': self.user.username if self.user else '已注销用户',
+                'avatar': self.user.avatar if self.user else '',
             },
             'content': self.content,
             'image': self.image,
@@ -68,9 +68,13 @@ class Comment(db.Model):
         return {
             'id': self.id,
             'postId': self.post_id,
-            'user': {'id': self.user_id, 'name': self.user.username, 'avatar': self.user.avatar},
+            'user': {
+                'id': self.user_id,
+                'name': self.user.username if self.user else '已注销用户',
+                'avatar': self.user.avatar if self.user else ''
+            },
             'content': self.content,
-            'time': self.created_at.strftime('%Y-%m-%d %H:%M'),
+            'time': self.created_at.strftime('%Y-%m-%d %H:%M') if self.created_at else '',
         }
 
 
